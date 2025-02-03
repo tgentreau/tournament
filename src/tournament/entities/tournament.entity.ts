@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Participant, TournamentPhaseType } from "../../models/models";
+import { Participant, TournamentPhaseType } from '../../models/models';
 import { CreateTournamentDto } from '../dto/create-tournament.dto';
 import { TournamentPhase } from './tournamentPhase.entity';
 
@@ -10,6 +10,7 @@ export class Tournament {
   currentParticipantNb: number;
   phases: TournamentPhase[];
   participants: Participant[];
+
   constructor(tournamentDTO: CreateTournamentDto) {
     this.id = uuidv4();
     this.name = tournamentDTO.name;

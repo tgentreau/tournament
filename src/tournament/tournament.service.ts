@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { UpdateTournamentDto } from './dto/update-tournament.dto';
 import { TournamentRepository } from './tournament.repository';
@@ -13,6 +17,7 @@ import { Participant } from 'src/models/models';
 @Injectable()
 export class TournamentService {
   constructor(private readonly tournamentRepository: TournamentRepository) {}
+
   create(createTournamentDto: CreateTournamentDto): string {
     const tournament: Tournament = new Tournament(createTournamentDto);
     return this.tournamentRepository.saveTournament(tournament);
@@ -54,8 +59,9 @@ export class TournamentService {
       throw new BadRequestException(`Invalid phase type: ${phaseType.type}`);
     }
     if (
+      tournament.phases.length > 0 &&
       this.getLastPhaseFromTournament(tournament).type ===
-      TournamentPhaseType.SingleBracketElimination
+        TournamentPhaseType.SingleBracketElimination
     ) {
       throw new BadRequestException(
         'Cannot add a phase to a tournament with a SingleBracketElimination phase',
@@ -79,6 +85,9 @@ export class TournamentService {
   }
 
   removeParticipant(tournamentId: string, participantId: string) {
-    return this.tournamentRepository.removeParticipant(tournamentId, participantId);
+    return this.tournamentRepository.removeParticipant(
+      tournamentId,
+      participantId,
+    );
   }
 }
