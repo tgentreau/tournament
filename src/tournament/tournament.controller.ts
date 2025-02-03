@@ -54,34 +54,30 @@ export class TournamentController {
   ) {
     return this.tournamentService.addPhaseToTournament(id, body);
   }
-}
 
-// Ajouter un participant à un tournoi
-@Post(":id/participants")
-addParticipant(@Param("id")
-id: string, @Body()
-participant: Participant;
-)
-{
-  return this.tournamentService.addParticipant(id, participant);
-}
+  // Ajouter un participant à un tournoi
+  @Post(":id/participants")
+  addParticipant(@Param("id")
+  id: string, @Body()
+  participant: Participant;
+  ) {
+    return this.tournamentService.addParticipant(id, participant);
+  }
 
-// Récupérer la liste des participants d'un tournoi
-@Get(":id/participants")
-getParticipants(@Param("id")
-id: string;
-)
-{
-  return this.tournamentService.getParticipants(id);
-}
+  // Récupérer la liste des participants d'un tournoi
+  @Get(":id/participants")
+  getParticipants(@Param("id")
+  id: string;
+  ){
+    return this.tournamentService.getParticipants(id);
+  }
 
-// Supprimer un participant d'un tournoi
-@Delete(":id/participants/:participantId")
-removeParticipant(@Param("id")
-id: string, @Param("participantId")
-participantId: string;
-)
-{
-  return this.tournamentService.removeParticipant(id, participantId);
-}
+  // Supprimer un participant d'un tournoi
+  @Delete(":id/participants/:participantId")
+  removeParticipant(@Param("id")
+  id: string, @Param("participantId")
+  participantId: string;
+  ){
+    return this.tournamentService.removeParticipant(id, participantId);
+  }
 }
