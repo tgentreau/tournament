@@ -48,6 +48,9 @@ export class TournamentService {
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    tournament.status = updateTournamentDto.status;
+    this.tournamentRepository.saveTournament(tournament);
     throw new HttpException('', HttpStatus.NO_CONTENT);
   }
 
@@ -62,6 +65,9 @@ export class TournamentService {
     const tournament = this.findOne(tournamentId);
     if (!tournament) {
       throw new BadRequestException('Tournament not found');
+    }
+    if (tournament.status !== 'Not Started') {
+      throw new BadRequestException('Cannot add phase to a started tournament');
     }
     if (
       !Object.values(TournamentPhaseType).includes(
@@ -89,6 +95,13 @@ export class TournamentService {
   }
 
   addParticipant(tournamentId: string, participant: Participant) {
+    const tournament = this.findOne(tournamentId);
+
+    if (tournament.status !== 'Not Started') {
+      throw new BadRequestException(
+        'Cannot add participant to a started tournament',
+      );
+    }
     return this.tournamentRepository.addParticipant(tournamentId, participant);
   }
 
@@ -97,6 +110,13 @@ export class TournamentService {
   }
 
   removeParticipant(tournamentId: string, participantId: string) {
+    const tournament = this.findOne(tournamentId);
+
+    if (tournament.status !== 'Not Started') {
+      throw new BadRequestException(
+        'Cannot remove participant from a started tournament',
+      );
+    }
     return this.tournamentRepository.removeParticipant(
       tournamentId,
       participantId,
