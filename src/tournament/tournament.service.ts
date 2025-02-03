@@ -3,6 +3,7 @@ import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { UpdateTournamentDto } from './dto/update-tournament.dto';
 import { TournamentRepository } from './tournament.repository';
 import { Tournament } from './entities/tournament.entity';
+import { Participant } from 'src/models/models';
 
 @Injectable()
 export class TournamentService {
@@ -26,5 +27,17 @@ export class TournamentService {
 
   remove(id: string) {
     return `This action removes a #${id} tournament`;
+  }
+
+  addParticipant(tournamentId: string, participant: Participant) {
+    return this.tournamentRepository.addParticipant(tournamentId, participant);
+  }
+
+  getParticipants(tournamentId: string): Participant[] {
+    return this.tournamentRepository.getParticipants(tournamentId);
+  }
+
+  removeParticipant(tournamentId: string, participantId: string) {
+    return this.tournamentRepository.removeParticipant(tournamentId, participantId);
   }
 }
