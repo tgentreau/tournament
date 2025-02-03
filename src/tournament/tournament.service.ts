@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { UpdateTournamentDto } from './dto/update-tournament.dto';
 import { TournamentRepository } from './tournament.repository';
@@ -21,7 +26,17 @@ export class TournamentService {
   }
 
   update(id: string, updateTournamentDto: UpdateTournamentDto) {
-    return `This action updates a #${id} tournament`;
+    const tournament = this.findOne(id);
+    if (!tournament) {
+      throw new NotFoundException('Tournament not found');
+    }
+    if (updateTournamentDto.status === 'Not Started') {
+      throw new HttpException(
+        'Invalid status : Not Started',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    throw new HttpException('', HttpStatus.NO_CONTENT);
   }
 
   remove(id: string) {
