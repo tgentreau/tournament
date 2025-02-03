@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { UpdateTournamentDto } from './dto/update-tournament.dto';
 import { TournamentRepository } from './tournament.repository';
@@ -8,6 +8,7 @@ import {
   TournamentPhaseType,
 } from '../models/models';
 import { TournamentPhase } from './entities/tournamentPhase.entity';
+import { Participant } from 'src/models/models';
 
 @Injectable()
 export class TournamentService {
@@ -22,7 +23,11 @@ export class TournamentService {
   }
 
   findOne(id: string): Tournament {
-    return this.tournamentRepository.getTournament(id);
+    const tournament: Tournament = this.tournamentRepository.getTournament(id);
+    if (tournament === undefined) {
+      throw new NotFoundException("Le tournoi n'existe pas");
+    }
+    return tournament;
   }
 
   update(id: string, updateTournamentDto: UpdateTournamentDto) {
@@ -63,5 +68,17 @@ export class TournamentService {
 
   getLastPhaseFromTournament(tournament: Tournament): TournamentPhase {
     return tournament.phases[tournament.phases.length - 1];
+  }
+
+  addParticipant(tournamentId: string, participant: Participant) {
+    return this.tournamentRepository.addParticipant(tournamentId, participant);
+  }
+
+  getParticipants(tournamentId: string): Participant[] {
+    return this.tournamentRepository.getParticipants(tournamentId);
+  }
+
+  removeParticipant(tournamentId: string, participantId: string) {
+    return this.tournamentRepository.removeParticipant(tournamentId, participantId);
   }
 }
