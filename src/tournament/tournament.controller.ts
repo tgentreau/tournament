@@ -11,6 +11,7 @@ import { TournamentService } from './tournament.service';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { UpdateTournamentDto } from './dto/update-tournament.dto';
 import { Tournament } from './entities/tournament.entity';
+import { TournamentPhaseInterface } from "../models/models";
 
 @Controller('tournament')
 export class TournamentController {
@@ -42,5 +43,13 @@ export class TournamentController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.tournamentService.remove(id);
+  }
+
+  @Post(':id/phase')
+  addPhase(
+    @Param('id') id: string,
+    @Body() body: TournamentPhaseInterface,
+  ) {
+    return this.tournamentService.addPhaseToTournament(id, body);
   }
 }

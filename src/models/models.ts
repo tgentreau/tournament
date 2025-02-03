@@ -3,8 +3,8 @@ export enum TournamentPhaseType {
   SwissRound = 'SwissRound',
 }
 
-export interface TournamentPhase {
-  type: TournamentPhaseType;
+export interface TournamentPhaseInterface {
+  type: string;
 }
 
 export interface Round {
