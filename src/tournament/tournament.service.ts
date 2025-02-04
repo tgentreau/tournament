@@ -24,7 +24,7 @@ export class TournamentService {
     if (!createTournamentDto.name) {
       throw new BadRequestException('Le nom est requis');
     }
-    
+
     const tournament: Tournament = new Tournament(createTournamentDto);
     const tournaments: Tournament[] = this.findAll();
     if (tournaments.some((t) => t.name === tournament.name)) {
@@ -108,7 +108,21 @@ export class TournamentService {
         'Cannot add participant to a started tournament',
       );
     }
-    return this.tournamentRepository.addParticipant(tournamentId, participant);
+    if (tournament.maxParticipants != null) {
+      if (tournament.participants.length < tournament.maxParticipants) {
+        return this.tournamentRepository.addParticipant(
+          tournamentId,
+          participant,
+        );
+      } else {
+        throw new BadRequestException('Maximum participants reached');
+      }
+    } else {
+      return this.tournamentRepository.addParticipant(
+        tournamentId,
+        participant,
+      );
+    }
   }
 
   getParticipants(tournamentId: string): Participant[] {

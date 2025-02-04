@@ -9,43 +9,14 @@ describe('TournamentController', () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [TournamentModule]
+      imports: [TournamentModule],
     }).compile();
 
     app = module.createNestApplication();
     await app.init();
   });
-
-  it('201 /POST tournament', async () => {
-    const req = request(app.getHttpServer())
-      .post('/tournament')
-      .send({
-        name: 'Tournament 1',
-      })
-      .expect(201)
-      const requestAsResponse = await req;
-      tournamentId = requestAsResponse.text;
-  });
-
-  it('400 /POST tournament name missing', async () => {
-    const req = request(app.getHttpServer())
-      .post('/tournament')
-      .send({
-        name: '',
-      })
-      .expect(400)
-  });
-
-  it('400 /POST tournament name already exist', async () => {
-    const req = request(app.getHttpServer())
-      .post('/tournament')
-      .send({
-        name: 'Tournament 1',
-      })
-      .expect(400)
-  });
-
-  it('200 /GET tournament', async () => {
+  
+    it('200 /GET tournament', async () => {
     const req = request(app.getHttpServer())
       .get(`/tournament/${tournamentId}`)
       .expect({
@@ -66,4 +37,152 @@ describe('TournamentController', () => {
       .expect(404)
   });
 
+  it('201 /POST tournament', async () => {
+    const req = request(app.getHttpServer())
+      .post('/tournament')
+      .send({
+        name: 'Tournament 1',
+      })
+      .expect(201);
+    const requestAsResponse = await req;
+    tournamentId = requestAsResponse.text;
+  });
+
+  it('400 /POST tournament name missing', async () => {
+    const req = request(app.getHttpServer())
+      .post('/tournament')
+      .send({
+        name: '',
+      })
+      .expect(400)
+  });
+
+  it('400 /POST tournament name already exist', async () => {
+    const req = request(app.getHttpServer())
+      .post('/tournament')
+      .send({
+        name: 'Tournament 1',
+      })
+      .expect(400);
+  });
+});
+
+describe('ParticipantController', () => {
+  let app: INestApplication;
+  let participantId: string;
+  let tournamentId: string;
+
+  beforeAll(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [TournamentModule],
+    }).compile();
+
+    app = module.createNestApplication();
+    await app.init();
+  });
+
+  it('201 /POST participant', async () => {
+    const reqAvant = request(app.getHttpServer()).post('/tournament').send({
+      name: 'Tournament 1',
+    });
+    const requestAsResponseAvant = await reqAvant;
+    tournamentId = requestAsResponseAvant.text;
+    const req = request(app.getHttpServer())
+      .post(`/tournament/${tournamentId}/participants`)
+      .send({
+        name: 'Participant 1',
+        elo: 1000,
+      })
+      .expect(201);
+    const requestAsResponse = await req;
+    participantId = requestAsResponse.text;
+  });
+
+  it('400 /POST participant name missing', async () => {
+    const req = request(app.getHttpServer())
+      .post(`/tournament/${tournamentId}/participants`)
+      .send({
+        name: '',
+        elo: 1000,
+      })
+      .expect(400);
+    const requestAsResponse = await req;
+    participantId = requestAsResponse.text;
+  });
+
+  it('400 /POST participant elo missing', async () => {
+    const req = request(app.getHttpServer())
+      .post(`/tournament/${tournamentId}/participants`)
+      .send({
+        name: 'Participant 1',
+        elo: '',
+      })
+      .expect(400);
+    const requestAsResponse = await req;
+    participantId = requestAsResponse.text;
+  });
+
+  it('400 /POST participant name already exist', async () => {
+    const req = request(app.getHttpServer())
+      .post('/participant')
+      .send({
+        name: 'Participant 1',
+      })
+      .expect(400);
+  });
+
+  it('200 /GET participant', async () => {
+    const req = request(app.getHttpServer())
+      .get(`/tournament/${tournamentId}/participants`)
+      .expect(200);
+  });
+
+  it('200 /GET participant/:id', async () => {
+    const req = request(app.getHttpServer())
+      .get(`/tournament/${tournamentId}/participants/${participantId}`)
+      .expect(200);
+  });
+
+  it('404 /GET participant/:id', async () => {
+    const req = request(app.getHttpServer())
+      .get(`/tournament/${tournamentId}/participants/123`)
+      .expect(404);
+  });
+
+  it('200 /DELETE participant/:id', async () => {
+    const req = request(app.getHttpServer())
+      .delete(`/tournament/${tournamentId}/participants/${participantId}`)
+      .expect(200);
+  });
+
+  it('404 /DELETE participant/:id', async () => {
+    const req = request(app.getHttpServer())
+      .delete(`/tournament/${tournamentId}/participants/123`)
+      .expect(404);
+  });
+
+  it('201 /POST too much participant in the tournament', async () => {
+    const reqAvant = request(app.getHttpServer()).post('/tournament').send({
+      name: 'Tournament A',
+      maxParticipants: 1,
+    });
+    const requestAsResponseAvant = await reqAvant;
+    tournamentId = requestAsResponseAvant.text;
+    const req = request(app.getHttpServer())
+      .post(`/tournament/${tournamentId}/participants`)
+      .send({
+        name: 'Participant 2',
+        elo: 1000,
+      })
+      .expect(201);
+    const requestAsResponse = await req;
+    participantId = requestAsResponse.text;
+    const req2 = request(app.getHttpServer())
+      .post(`/tournament/${tournamentId}/participants`)
+      .send({
+        name: 'Participant 3',
+        elo: 1000,
+      })
+      .expect(400);
+  });
 });
