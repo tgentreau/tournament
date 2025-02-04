@@ -51,10 +51,7 @@ export class TournamentService {
       throw new NotFoundException('Tournament not found');
     }
     if (updateTournamentDto.status === 'Not Started') {
-      throw new HttpException(
-        'Invalid status : Not Started',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('Invalid status : Not Started');
     }
 
     tournament.status = updateTournamentDto.status;
@@ -104,6 +101,7 @@ export class TournamentService {
 
   addParticipant(tournamentId: string, participant: Participant) {
     const tournament = this.findOne(tournamentId);
+    tournament.currentParticipantNb++;
 
     if (tournament.status !== 'Not Started') {
       throw new BadRequestException(
@@ -125,6 +123,7 @@ export class TournamentService {
         'Cannot remove participant from a started tournament',
       );
     }
+    tournament.currentParticipantNb--;
     return this.tournamentRepository.removeParticipant(
       tournamentId,
       participantId,
