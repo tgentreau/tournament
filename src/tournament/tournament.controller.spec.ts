@@ -1,20 +1,50 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { TournamentController } from './tournament.controller';
-import { TournamentService } from './tournament.service';
+import { INestApplication } from '@nestjs/common';
+import * as request from 'supertest';
+import { TournamentModule } from './tournament.module';
 
 describe('TournamentController', () => {
-  let controller: TournamentController;
+  let app: INestApplication;
+  let tournamentId: string;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [TournamentController],
-      providers: [TournamentService],
+      imports: [TournamentModule]
     }).compile();
 
-    controller = module.get<TournamentController>(TournamentController);
+    app = module.createNestApplication();
+    await app.init();
   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+  it('201 /POST tournament', async () => {
+    const req = request(app.getHttpServer())
+      .post('/tournament')
+      .send({
+        name: 'Tournament 1',
+      })
+      .expect(201)
+      const requestAsResponse = await req;
+      tournamentId = requestAsResponse.text;
   });
+
+  it('400 /POST tournament name missing', async () => {
+    const req = request(app.getHttpServer())
+      .post('/tournament')
+      .send({
+        name: '',
+      })
+      .expect(400)
+      const requestAsResponse = await req;
+      tournamentId = requestAsResponse.text;
+  });
+
+  it('400 /POST tournament name already exist', async () => {
+    const req = request(app.getHttpServer())
+      .post('/tournament')
+      .send({
+        name: 'Tournament 1',
+      })
+      .expect(400)
+  });
+
 });

@@ -21,7 +21,15 @@ export class TournamentService {
   constructor(private readonly tournamentRepository: TournamentRepository) {}
 
   create(createTournamentDto: CreateTournamentDto): string {
+    if (!createTournamentDto.name) {
+      throw new BadRequestException('Le nom est requis');
+    }
+    
     const tournament: Tournament = new Tournament(createTournamentDto);
+    const tournaments: Tournament[] = this.findAll();
+    if (tournaments.some((t) => t.name === tournament.name)) {
+      throw new BadRequestException('Un tournoi avec ce nom existe déjà');
+    }
     return this.tournamentRepository.saveTournament(tournament);
   }
 
