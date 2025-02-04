@@ -34,8 +34,6 @@ describe('TournamentController', () => {
         name: '',
       })
       .expect(400)
-      const requestAsResponse = await req;
-      tournamentId = requestAsResponse.text;
   });
 
   it('400 /POST tournament name already exist', async () => {
@@ -45,6 +43,27 @@ describe('TournamentController', () => {
         name: 'Tournament 1',
       })
       .expect(400)
+  });
+
+  it('200 /GET tournament', async () => {
+    const req = request(app.getHttpServer())
+      .get(`/tournament/${tournamentId}`)
+      .expect({
+        id: tournamentId,
+        name: 'Tournament 1',
+        maxParticipants: null,
+        currentParticipantNb: 0,
+        phases: [],
+        participants: [],
+        status: 'Not Started',
+      })
+      .expect(200)
+  });
+
+  it('200 /GET tournament', async () => {
+    const req = request(app.getHttpServer())
+      .get(`/tournament/123456`)
+      .expect(404)
   });
 
 });
