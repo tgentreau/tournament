@@ -15,6 +15,27 @@ describe('TournamentController', () => {
     app = module.createNestApplication();
     await app.init();
   });
+  
+    it('200 /GET tournament', async () => {
+    const req = request(app.getHttpServer())
+      .get(`/tournament/${tournamentId}`)
+      .expect({
+        id: tournamentId,
+        name: 'Tournament 1',
+        maxParticipants: null,
+        currentParticipantNb: 0,
+        phases: [],
+        participants: [],
+        status: 'Not Started',
+      })
+      .expect(200)
+  });
+
+  it('200 /GET tournament', async () => {
+    const req = request(app.getHttpServer())
+      .get(`/tournament/123456`)
+      .expect(404)
+  });
 
   it('201 /POST tournament', async () => {
     const req = request(app.getHttpServer())
@@ -33,9 +54,7 @@ describe('TournamentController', () => {
       .send({
         name: '',
       })
-      .expect(400);
-    const requestAsResponse = await req;
-    tournamentId = requestAsResponse.text;
+      .expect(400)
   });
 
   it('400 /POST tournament name already exist', async () => {
