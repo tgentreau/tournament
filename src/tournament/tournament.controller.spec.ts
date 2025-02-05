@@ -3,7 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { TournamentModule } from './tournament.module';
 
-describe('TournamentController', () => {
+describe('Tournament', () => {
   let app: INestApplication;
   let tournamentId: string;
 
@@ -17,7 +17,7 @@ describe('TournamentController', () => {
   });
   
     it('200 /GET tournament', async () => {
-    const req = request(app.getHttpServer())
+    request(app.getHttpServer())
       .get(`/tournament/${tournamentId}`)
       .expect({
         id: tournamentId,
@@ -31,8 +31,8 @@ describe('TournamentController', () => {
       .expect(200)
   });
 
-  it('200 /GET tournament', async () => {
-    const req = request(app.getHttpServer())
+  it('404 /GET tournament', async () => {
+    request(app.getHttpServer())
       .get(`/tournament/123456`)
       .expect(404)
   });
@@ -49,7 +49,7 @@ describe('TournamentController', () => {
   });
 
   it('400 /POST tournament name missing', async () => {
-    const req = request(app.getHttpServer())
+    request(app.getHttpServer())
       .post('/tournament')
       .send({
         name: '',
@@ -58,7 +58,7 @@ describe('TournamentController', () => {
   });
 
   it('400 /POST tournament name already exist', async () => {
-    const req = request(app.getHttpServer())
+    request(app.getHttpServer())
       .post('/tournament')
       .send({
         name: 'Tournament 1',
@@ -67,7 +67,7 @@ describe('TournamentController', () => {
   });
 });
 
-describe('ParticipantController', () => {
+describe('Participant', () => {
   let app: INestApplication;
   let participantId: string;
   let tournamentId: string;
@@ -123,7 +123,7 @@ describe('ParticipantController', () => {
   });
 
   it('400 /POST participant name already exist', async () => {
-    const req = request(app.getHttpServer())
+    request(app.getHttpServer())
       .post('/participant')
       .send({
         name: 'Participant 1',
@@ -132,31 +132,31 @@ describe('ParticipantController', () => {
   });
 
   it('200 /GET participant', async () => {
-    const req = request(app.getHttpServer())
+    request(app.getHttpServer())
       .get(`/tournament/${tournamentId}/participants`)
       .expect(200);
   });
 
   it('200 /GET participant/:id', async () => {
-    const req = request(app.getHttpServer())
+    request(app.getHttpServer())
       .get(`/tournament/${tournamentId}/participants/${participantId}`)
       .expect(200);
   });
 
   it('404 /GET participant/:id', async () => {
-    const req = request(app.getHttpServer())
+    request(app.getHttpServer())
       .get(`/tournament/${tournamentId}/participants/123`)
       .expect(404);
   });
 
   it('200 /DELETE participant/:id', async () => {
-    const req = request(app.getHttpServer())
+    request(app.getHttpServer())
       .delete(`/tournament/${tournamentId}/participants/${participantId}`)
       .expect(200);
   });
 
   it('404 /DELETE participant/:id', async () => {
-    const req = request(app.getHttpServer())
+    request(app.getHttpServer())
       .delete(`/tournament/${tournamentId}/participants/123`)
       .expect(404);
   });
@@ -177,7 +177,7 @@ describe('ParticipantController', () => {
       .expect(201);
     const requestAsResponse = await req;
     participantId = requestAsResponse.text;
-    const req2 = request(app.getHttpServer())
+    request(app.getHttpServer())
       .post(`/tournament/${tournamentId}/participants`)
       .send({
         name: 'Participant 3',
