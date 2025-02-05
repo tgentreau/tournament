@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -34,6 +35,7 @@ export class TournamentController {
   }
 
   @Patch(':id')
+  @HttpCode(204)
   update(
     @Param('id') id: string,
     @Body() updateTournamentDto: UpdateTournamentDto,

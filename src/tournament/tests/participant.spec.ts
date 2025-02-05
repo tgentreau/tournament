@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { TournamentModule } from './tournament.module';
+import { TournamentModule } from '../tournament.module';
 
 describe('Tournament', () => {
   let app: INestApplication;
