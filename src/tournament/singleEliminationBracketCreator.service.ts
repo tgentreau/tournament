@@ -17,107 +17,200 @@ class SingleEliminationBracketCreatorService {
       throw new BadRequestException('No participants found for the tournament');
     }
 
-    // Sort players by Elo score in descending order
     players.sort((a, b) => b.elo - a.elo);
-
-    // Determine the number of top seeds
-    const quarterLength = Math.floor(players.length / 4);
-    const powerOfTwo = 2 ** Math.floor(Math.log2(quarterLength));
-    const topSeeds = players.slice(0, powerOfTwo);
-
-    // Create the bracket
-    const bracket = this.createBracket(topSeeds, players);
-
-    console.log(bracket);
-    return bracket;
+    return this.createBracket(players);
   }
 
-  private createBracket(
-    topSeeds: Participant[],
-    players: Participant[],
-  ): Round[] {
-    const rounds: Round[] = [];
+  nextPowerOfTwo(n: number): number {
+    return Math.pow(2, Math.ceil(Math.log2(n)));
+  }
 
-    // Calculate the total number of rounds
+  private createBracket(players: Participant[]): Round[] {
+    const rounds: Round[] = [];
     const totalRounds = Math.ceil(Math.log2(players.length));
+    const nbOfMatchesFirstRound = this.nextPowerOfTwo(
+      Math.ceil(totalRounds ** 2 / 2),
+    );
+    const nbTopPlayers = Math.ceil((nbOfMatchesFirstRound * 2) / 4);
+    let nbOfNullPlayer = nbOfMatchesFirstRound * 2 - players.length;
+    let nbOfMatches = nbOfMatchesFirstRound;
+
     for (let i = 0; i < totalRounds; i++) {
       const newRound: Round = {
         name: `Round ${i + 1}`,
-        matches: [],
+        matches: Array(nbOfMatches)
+          .fill(null)
+          .map(() => ({
+            participant1: null,
+            participant2: null,
+            status: MatchStatus.NotReady,
+            winner: null,
+          })),
       };
+      nbOfMatches /= 2;
       rounds.push(newRound);
     }
 
-    const nbOfMatches = Math.ceil(totalRounds ** 2 / 2);
-    let nbOfNullPlayer = nbOfMatches * 2 - players.length;
-    for (let i = 0; i < nbOfMatches; i++) {
-      const participant2 =
-        nbOfNullPlayer > 0 ? null : players[players.length - i - 1];
+    for (let i = 0; i < nbOfMatchesFirstRound; i++) {
+      let participant1 = null;
+      let participant2 = null;
+      if (i <= nbTopPlayers) {
+        if (i % 2 === 0) {
+          participant1 = players[i];
+          participant2 =
+            nbOfNullPlayer > 0 ? null : players[players.length - i - 1];
+        } else {
+          participant1 =
+            nbOfNullPlayer > 0 ? null : players[players.length - i - 1];
+          participant2 = players[i];
+        }
+      } else {
+        participant1 = players[i];
+        participant2 =
+          nbOfNullPlayer > 0 ? null : players[players.length - i - 1];
+      }
+
       const match: Match = {
-        participant1: players[i],
+        participant1: participant1,
         participant2: participant2,
         status:
           participant2 != null ? MatchStatus.Playable : MatchStatus.NotPlayable,
         winner: participant2 != null ? null : players[i].name,
       };
+
       if (participant2 === null) {
         match.score = null;
       }
       nbOfNullPlayer--;
-      rounds[0].matches.push(match);
+      rounds[0].matches[i] = match;
     }
 
-    const firstRound = this.refactorBracket(rounds[0].matches);
+    const firstRound = this.refactorBracket(
+      rounds[0].matches,
+      nbTopPlayers,
+      nbOfMatchesFirstRound,
+    );
     rounds[0].matches = firstRound;
 
-    rounds[1] = this.setSecondRoundWhenPlayerSolo(
-      firstRound,
-      rounds[1],
+    // const roundsInvertedPlayers = this.reverseRoundsAndMatches(rounds);
+
+    const roundsAfterMovePlayer =
+      null; /*this.moveWinner(roundsInvertedPlayers)*/
+
+    return roundsAfterMovePlayer;
+  }
+
+  refactorBracket(
+    matches: Match[],
+    nbTopPlayers: number,
+    nbOfMatchesFirstRound: number,
+  ): Match[] {
+    const topPlayersMatches = matches.slice(0, nbTopPlayers);
+    const otherPlayersMatches = matches.slice(nbTopPlayers, matches.length);
+    const brackets = [];
+    const firstBracket = topPlayersMatches.slice(0, 1);
+    const lastBracket = topPlayersMatches.slice(1, 2);
+    const topPlayersMatchesWithoutFirstAndLast = topPlayersMatches.slice(
+      2,
+      topPlayersMatches.length,
     );
-
-    return rounds;
-  }
-
-  refactorBracket(matches: Match[]) {
-    let phaseBrackets = matches;
-    let nbRounds = matches.length / 2;
-    while (phaseBrackets.length == 0 || phaseBrackets.length > 2) {
-      const globalBracket = [];
-      for (let i = 0; i < nbRounds; i++) {
-        const bracket = [];
-        bracket.push(phaseBrackets[i]);
-        bracket.push(phaseBrackets[phaseBrackets.length - i - 1]);
-        globalBracket.push(bracket);
-      }
-      phaseBrackets = globalBracket;
-      nbRounds = nbRounds / 2;
-    }
-
-    return this.flattenArray(phaseBrackets);
-  }
-
-  flattenArray(arr: any[]): any[] {
-    return arr.reduce(
-      (acc, val) =>
-        Array.isArray(val)
-          ? acc.concat(this.flattenArray(val))
-          : acc.concat(val),
-      [],
+    const randomizedOtherPlayersMatches = otherPlayersMatches.sort(
+      () => Math.random() - 0.5,
     );
-  }
-
-  setSecondRoundWhenPlayerSolo(firstRound, secondRound) {
-    firstRound.forEach((match, index) => {
-      if (match.participant2 === null) {
-        secondRound.matches[Math.floor(index / 2)] = {
-          participant1: match.participant1,
-          participant2: null,
-          status: MatchStatus.NotReady,
-          winner: null,
-        };
+    const firstTopPlayersMatches = [];
+    const lastTopPlayersMatches = [];
+    topPlayersMatchesWithoutFirstAndLast.forEach((match, index) => {
+      if (index % 2 === 0) {
+        firstTopPlayersMatches.push(match);
+      } else {
+        lastTopPlayersMatches.push(match);
       }
     });
+    const reversedFirstTopPlayersMatches = firstTopPlayersMatches.reverse();
 
-    return secondRound;
+    brackets.push(firstBracket[0]);
+    let indexReversedFirstTopPlayersMatches = 0;
+    let indexLastTopPlayersMatches = 0;
+    let indexRandomizedOtherPlayersMatches = 0;
+
+    for (let i = 1; i < nbOfMatchesFirstRound - 1; i++) {
+      if ((i + 1) % 4 === 0) {
+        for (let j = 0; j < 2; j++) {
+          if (
+            indexReversedFirstTopPlayersMatches <
+            reversedFirstTopPlayersMatches.length
+          ) {
+            brackets.push(
+              reversedFirstTopPlayersMatches[
+                indexReversedFirstTopPlayersMatches
+              ],
+            );
+            if (
+              brackets[brackets.length - 1].participant1.elo >
+                brackets[brackets.length - 1].participant2.elo &&
+              indexReversedFirstTopPlayersMatches % 2 === 0
+            ) {
+              const temporaryParticipant1 =
+                brackets[brackets.length - 1].participant1;
+              brackets[brackets.length - 1].participant1 =
+                brackets[brackets.length - 1].participant2;
+              brackets[brackets.length - 1].participant2 =
+                temporaryParticipant1;
+            }
+            indexReversedFirstTopPlayersMatches++;
+          } else {
+            brackets.push(lastTopPlayersMatches[indexLastTopPlayersMatches]);
+            if (
+              brackets[brackets.length - 1].participant1.elo <
+                brackets[brackets.length - 1].participant2.elo &&
+              indexLastTopPlayersMatches % 2 === 0
+            ) {
+              const temporaryParticipant1 =
+                brackets[brackets.length - 1].participant1;
+              brackets[brackets.length - 1].participant1 =
+                brackets[brackets.length - 1].participant2;
+              brackets[brackets.length - 1].participant2 =
+                temporaryParticipant1;
+            }
+            indexLastTopPlayersMatches++;
+          }
+          i = j == 0 ? i + 1 : i;
+        }
+      } else {
+        brackets.push(
+          randomizedOtherPlayersMatches[indexRandomizedOtherPlayersMatches],
+        );
+        indexRandomizedOtherPlayersMatches++;
+      }
+    }
+
+    brackets.push(lastBracket[0]);
+
+    return brackets;
+  }
+
+  moveWinner(rounds: Round[]) {
+    rounds.forEach((round: Round, indexRound) => {
+      round.matches.forEach((match: Match, indexMatch) => {
+        // Pour déplacer les joueurs qui n'ont pas d'aversaire lors de la création du bracket
+        if (match.status === MatchStatus.NotPlayable && match.winner != null) {
+          const nextRound = indexRound + 1;
+          const nextMatchIndex = Math.floor(indexMatch / 2);
+          const playerPosition = indexMatch % 2;
+          const player =
+            match.participant1 != null
+              ? match.participant1
+              : match.participant2;
+
+          if (playerPosition === 0) {
+            rounds[nextRound].matches[nextMatchIndex].participant1 = player;
+          } else {
+            rounds[nextRound].matches[nextMatchIndex].participant2 = player;
+          }
+        }
+      });
+    });
+
+    return rounds;
   }
 }
