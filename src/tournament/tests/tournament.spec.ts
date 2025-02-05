@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { TournamentModule } from '../tournament.module';
+import { TournamentStatus } from '../entities/tournament.entity';
 
 describe('Tournament', () => {
   let app: INestApplication;
@@ -64,5 +65,13 @@ describe('Tournament', () => {
         name: 'Tournament 1',
       })
       .expect(400);
+  });
+  it('204 /PATCH start tournament', async () => {
+    request(app.getHttpServer())
+      .patch('/tournament/' + tournamentId)
+      .send({
+        status: TournamentStatus.STARTED,
+      })
+      .expect(204);
   });
 });
