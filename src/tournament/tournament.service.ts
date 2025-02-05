@@ -56,7 +56,6 @@ export class TournamentService {
 
     tournament.status = updateTournamentDto.status;
     this.tournamentRepository.saveTournament(tournament);
-    throw new HttpException('', HttpStatus.NO_CONTENT);
   }
 
   remove(id: string) {

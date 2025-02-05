@@ -10,7 +10,7 @@ export class Tournament {
   currentParticipantNb: number;
   phases: TournamentPhase[];
   participants: Participant[];
-  status: string;
+  status: TournamentStatus;
   constructor(tournamentDTO: CreateTournamentDto) {
     this.id = uuidv4();
     this.name = tournamentDTO.name;
@@ -18,11 +18,17 @@ export class Tournament {
     this.currentParticipantNb = 0;
     this.phases = [];
     this.participants = [];
-    this.status = 'Not Started';
+    this.status = TournamentStatus.NOT_STARTED;
   }
 
   addPhase(phaseType: TournamentPhase): void {
     const newPhase = new TournamentPhase(phaseType.type as TournamentPhaseType);
     this.phases.push(newPhase);
   }
+}
+
+export enum TournamentStatus {
+  NOT_STARTED = 'Not Started',
+  STARTED = 'Started',
+  FINISHED = 'Finished',
 }
