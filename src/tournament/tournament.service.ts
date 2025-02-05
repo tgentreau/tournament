@@ -13,7 +13,7 @@ import {
   TournamentPhaseInterface,
   TournamentPhaseType,
 } from '../models/models';
-import { TournamentPhase } from './entities/tournamentPhase.entity';
+import { TournamentPhase } from './entities/phase.entity';
 import { Participant } from 'src/models/models';
 
 @Injectable()
