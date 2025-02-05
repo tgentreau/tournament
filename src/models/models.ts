@@ -3,6 +3,12 @@ export enum TournamentPhaseType {
   SwissRound = 'SwissRound',
 }
 
+export enum MatchStatus {
+  Playable = 'Playable',
+  NotPlayable = 'NotPlayable',
+  NotReady = 'NotReady',
+}
+
 export interface TournamentPhaseInterface {
   type: string;
 }
@@ -15,6 +21,9 @@ export interface Round {
 export interface Match {
   participant1: Participant;
   participant2: Participant;
+  status: MatchStatus;
+  winner: string;
+  score?: number;
 }
 
 export interface Participant {
