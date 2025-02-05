@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { SingleEliminationBracketCreatorService } from './singleEliminationBracketCreator.service';
 import { TournamentRepository } from './tournament.repository';
 import { Participant } from '../models/models';
 import { Tournament } from './entities/tournament.entity';
 import { TournamentPhase } from './entities/tournamentPhase.entity';
+import { SingleEliminationBracketCreatorService } from './singleEliminationBracketCreator.service';
 
 describe('SingleEliminationBracketCreatorService', () => {
   let service: SingleEliminationBracketCreatorService;
@@ -57,8 +57,8 @@ describe('SingleEliminationBracketCreatorService', () => {
       { id: '12', name: 'Player 12', elo: 900 },
       { id: '13', name: 'Player 13', elo: 800 },
       { id: '14', name: 'Player 14', elo: 700 },
-      { id: '15', name: 'Player 15', elo: 600 },
-      { id: '16', name: 'Player 16', elo: 500 },
+      // { id: '15', name: 'Player 15', elo: 600 },
+      // { id: '16', name: 'Player 16', elo: 500 },
     ];
 
     tournament.participants = participants;

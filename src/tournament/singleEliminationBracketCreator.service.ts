@@ -48,24 +48,32 @@ class SingleEliminationBracketCreatorService {
       rounds.push(newRound);
     }
 
-    const nbOfMatches = players.length / 2;
+    const nbOfMatches = Math.ceil(totalRounds ** 2 / 2);
+    let nbOfNullPlayer = nbOfMatches * 2 - players.length;
     for (let i = 0; i < nbOfMatches; i++) {
-      const match = {
+      const participant2 =
+        nbOfNullPlayer > 0 ? null : players[players.length - i - 1];
+      const match: Match = {
         participant1: players[i],
-        participant2: players[players.length - i - 1] ?? null,
-        status: players[players.length - i - 1]
-          ? MatchStatus.Playable
-          : MatchStatus.NotPlayable,
-        winner: players[players.length - i - 1] ? null : players[i].name,
+        participant2: participant2,
+        status:
+          participant2 != null ? MatchStatus.Playable : MatchStatus.NotPlayable,
+        winner: participant2 != null ? null : players[i].name,
       };
+      if (participant2 === null) {
+        match.score = null;
+      }
+      nbOfNullPlayer--;
       rounds[0].matches.push(match);
     }
 
     const firstRound = this.refactorBracket(rounds[0].matches);
     rounds[0].matches = firstRound;
 
-    const secondRound = this.setNextMatchWhenPlayerSolo(firstRound);
-    rounds[1].matches = secondRound;
+    rounds[1] = this.setSecondRoundWhenPlayerSolo(
+      firstRound,
+      rounds[1],
+    );
 
     return rounds;
   }
@@ -98,7 +106,18 @@ class SingleEliminationBracketCreatorService {
     );
   }
 
-  setNextMatchWhenPlayerSolo(firstRound) {
-    firstRound.forEach((match, index) => {});
+  setSecondRoundWhenPlayerSolo(firstRound, secondRound) {
+    firstRound.forEach((match, index) => {
+      if (match.participant2 === null) {
+        secondRound.matches[Math.floor(index / 2)] = {
+          participant1: match.participant1,
+          participant2: null,
+          status: MatchStatus.NotReady,
+          winner: null,
+        };
+      }
+    });
+
+    return secondRound;
   }
 }
