@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { TournamentRepository } from './tournament.repository';
 import { Match, MatchStatus, Participant, Round } from '../models/models';
-import { Tournament } from './entities/tournament.entity';
 import { MathUtils } from '../utils/mathUtils';
 
 export
@@ -9,11 +8,7 @@ export
 class SingleEliminationBracketCreatorService {
   constructor(private readonly tournamentRepository: TournamentRepository) {}
 
-  public generateSingleEliminationBracket(tournament: Tournament) {
-    const players: Participant[] = this.tournamentRepository.getParticipants(
-      tournament.id,
-    );
-
+  public generateSingleEliminationBracket(players: Participant[]): Round[] {
     if (!players || players.length === 0) {
       throw new BadRequestException('No participants found for the tournament');
     }
@@ -26,7 +21,7 @@ class SingleEliminationBracketCreatorService {
     let rounds: Round[] = [];
     const totalRounds = Math.ceil(Math.log2(players.length));
     const nbOfMatchesFirstRound = MathUtils.nextPowerOfTwo(
-      Math.ceil(totalRounds ** 2 / 2),
+      Math.ceil(players.length / 2),
     );
     const nbOfNullPlayer = nbOfMatchesFirstRound * 2 - players.length;
 

@@ -57,6 +57,10 @@ export class TournamentService {
     }
 
     tournament.status = updateTournamentDto.status;
+    tournament.phases[0].rounds =
+      this.singleEliminationBracketCreatorService.generateSingleEliminationBracket(
+        tournament.participants,
+      );
     this.tournamentRepository.saveTournament(tournament);
   }
 

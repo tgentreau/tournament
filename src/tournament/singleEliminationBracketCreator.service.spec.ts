@@ -1,13 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { TournamentRepository } from './tournament.repository';
-import { Participant } from '../models/models';
-import { Tournament } from './entities/tournament.entity';
-import { TournamentPhase } from './entities/tournamentPhase.entity';
 import { SingleEliminationBracketCreatorService } from './singleEliminationBracketCreator.service';
+import { TournamentRepository } from './tournament.repository';
+import { MatchStatus, Participant, Round } from '../models/models';
 
-describe('SingleEliminationBracketCreatorService', () => {
+describe('SingleEliminationBracketCreatorService - generateSingleEliminationBracket', () => {
   let service: SingleEliminationBracketCreatorService;
-  let repository: TournamentRepository;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -15,9 +12,7 @@ describe('SingleEliminationBracketCreatorService', () => {
         SingleEliminationBracketCreatorService,
         {
           provide: TournamentRepository,
-          useValue: {
-            getParticipants: jest.fn(),
-          },
+          useValue: {},
         },
       ],
     }).compile();
@@ -25,35 +20,61 @@ describe('SingleEliminationBracketCreatorService', () => {
     service = module.get<SingleEliminationBracketCreatorService>(
       SingleEliminationBracketCreatorService,
     );
-    repository = module.get<TournamentRepository>(TournamentRepository);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-
-  it('should generate a single elimination bracket', () => {
-    const tournament: Tournament = {
-      currentParticipantNb: 0,
-      phases: [],
-      status: '',
-      addPhase(phaseType: TournamentPhase): void {},
-      id: '1',
-      name: 'Test Tournament',
-      participants: [],
-    };
-    const participants: Participant[] = Array.from({ length: 30 }, (_, i) => ({
+  it('should generate a single elimination bracket with 8 participants', () => {
+    const participants: Participant[] = Array.from({ length: 8 }, (_, i) => ({
       id: (i + 1).toString(),
       name: `Player ${i + 1}`,
       elo: 2000 - i * 50,
     }));
 
-    tournament.participants = participants;
-
-    jest.spyOn(repository, 'getParticipants').mockReturnValue(participants);
-
-    const bracket = service.generateSingleEliminationBracket(tournament);
+    const bracket: Round[] =
+      service.generateSingleEliminationBracket(participants);
 
     expect(bracket).toBeDefined();
+    expect(bracket.length).toBe(3); // 3 rounds for 8 participants
+    expect(bracket[0].matches.length).toBe(4); // First round should have 4 matches
+    expect(bracket[0].matches[0].participant1).toBe(participants[0]);
+    expect(bracket[0].matches[0].participant2).toBe(participants[7]);
+    expect(bracket[0].matches[0].status).toBe(MatchStatus.Playable);
+  });
+
+  it('should generate a single elimination bracket with 16 participants', () => {
+    const participants: Participant[] = Array.from({ length: 16 }, (_, i) => ({
+      id: (i + 1).toString(),
+      name: `Player ${i + 1}`,
+      elo: 2000 - i * 50,
+    }));
+
+    const bracket: Round[] =
+      service.generateSingleEliminationBracket(participants);
+
+    expect(bracket).toBeDefined();
+    expect(bracket.length).toBe(4); // 3 rounds for 8 participants
+    expect(bracket[0].matches.length).toBe(8); // First round should have 4 matches
+    expect(bracket[0].matches[0].participant1).toBe(participants[0]);
+    expect(bracket[0].matches[0].participant2).toBe(participants[15]);
+    expect(bracket[0].matches[0].status).toBe(MatchStatus.Playable);
+  });
+
+  it('should generate single elimination bracket with 7 participants', () => {
+    const participants: Participant[] = Array.from({ length: 7 }, (_, i) => ({
+      id: (i + 1).toString(),
+      name: `Player ${i + 1}`,
+      elo: 2000 - i * 50,
+    }));
+
+    const bracket: Round[] =
+      service.generateSingleEliminationBracket(participants);
+
+    expect(bracket).toBeDefined();
+    expect(bracket.length).toBe(3); // 3 rounds for 7 participants
+    expect(bracket[0].matches.length).toBe(4); // First round should have 4 matches
+    expect(bracket[0].matches[0].participant1).toBe(participants[0]);
+    expect(bracket[0].matches[0].participant2).toBe(null);
+    expect(bracket[0].matches[0].status).toBe(MatchStatus.NotPlayable);
+    expect(bracket[1].matches[0].participant1).toBe(participants[0]);
+    expect(bracket[1].matches[0].status).toBe(MatchStatus.NotReady);
   });
 });
