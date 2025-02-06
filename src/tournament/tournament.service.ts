@@ -15,10 +15,14 @@ import {
 } from '../models/models';
 import { TournamentPhase } from './entities/tournamentPhase.entity';
 import { Participant } from 'src/models/models';
+import { SingleEliminationBracketCreatorService } from './singleEliminationBracketCreator.service';
 
 @Injectable()
 export class TournamentService {
-  constructor(private readonly tournamentRepository: TournamentRepository) {}
+  constructor(
+    private readonly tournamentRepository: TournamentRepository,
+    private readonly singleEliminationBracketCreatorService: SingleEliminationBracketCreatorService,
+  ) {}
 
   create(createTournamentDto: CreateTournamentDto): string {
     const tournament: Tournament = new Tournament(createTournamentDto);

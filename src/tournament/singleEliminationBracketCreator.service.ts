@@ -2,13 +2,14 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { TournamentRepository } from './tournament.repository';
 import { Match, MatchStatus, Participant, Round } from '../models/models';
 import { Tournament } from './entities/tournament.entity';
+import { MathUtils } from '../utils/mathUtils';
 
 export
 @Injectable()
 class SingleEliminationBracketCreatorService {
   constructor(private readonly tournamentRepository: TournamentRepository) {}
 
-  generateSingleEliminationBracket(tournament: Tournament) {
+  public generateSingleEliminationBracket(tournament: Tournament) {
     const players: Participant[] = this.tournamentRepository.getParticipants(
       tournament.id,
     );
@@ -21,14 +22,10 @@ class SingleEliminationBracketCreatorService {
     return this.createBracket(players);
   }
 
-  nextPowerOfTwo(n: number): number {
-    return Math.pow(2, Math.ceil(Math.log2(n)));
-  }
-
   private createBracket(players: Participant[]): Round[] {
     let rounds: Round[] = [];
     const totalRounds = Math.ceil(Math.log2(players.length));
-    const nbOfMatchesFirstRound = this.nextPowerOfTwo(
+    const nbOfMatchesFirstRound = MathUtils.nextPowerOfTwo(
       Math.ceil(totalRounds ** 2 / 2),
     );
     const nbOfNullPlayer = nbOfMatchesFirstRound * 2 - players.length;
@@ -51,12 +48,10 @@ class SingleEliminationBracketCreatorService {
       players,
     );
 
-    const roundsAfterMovePlayer = this.moveWinner(rounds);
-
-    return roundsAfterMovePlayer;
+    return this.moveWinners(rounds);
   }
 
-  constructTournamentAndSetNullAllMatches(
+  private constructTournamentAndSetNullAllMatches(
     rounds: Round[],
     nbOfMatchesFirstRound: number,
     totalRounds: number,
@@ -81,7 +76,7 @@ class SingleEliminationBracketCreatorService {
     return rounds;
   }
 
-  setPlayerPositionInMatch(
+  private setPlayerPositionInMatch(
     players: Participant[],
     nbOfNullPlayer: number,
     rounds: Round[],
@@ -128,7 +123,7 @@ class SingleEliminationBracketCreatorService {
     return rounds;
   }
 
-  generateNewBracket(matches: Match[], players: Participant[]) {
+  private generateNewBracket(matches: Match[], players: Participant[]) {
     const nbMatches = matches.length;
 
     let currentIndex = 2;
@@ -139,7 +134,7 @@ class SingleEliminationBracketCreatorService {
       const player = players[currentIndex];
       const isBefore = matchToPlace.participant1?.id === player.id;
 
-      const totalToReach = this.nextPowerOfTwo(currentIndex + 1) + 1;
+      const totalToReach = MathUtils.nextPowerOfTwo(currentIndex + 1) + 1;
       const opponentRanking = totalToReach - (currentIndex + 1);
 
       const playerToMatch = players[opponentRanking - 1];
@@ -167,7 +162,7 @@ class SingleEliminationBracketCreatorService {
     return result;
   }
 
-  moveWinner(rounds: Round[]) {
+  public moveWinners(rounds: Round[]) {
     rounds.forEach((round: Round, indexRound) => {
       round.matches.forEach((match: Match, indexMatch) => {
         if (match.winner != null) {
