@@ -42,7 +42,7 @@ describe('SingleEliminationBracketCreatorService', () => {
       name: 'Test Tournament',
       participants: [],
     };
-    const participants: Participant[] = Array.from({ length: 32 }, (_, i) => ({
+    const participants: Participant[] = Array.from({ length: 30 }, (_, i) => ({
       id: (i + 1).toString(),
       name: `Player ${i + 1}`,
       elo: 2000 - i * 50,
