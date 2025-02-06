@@ -1,11 +1,16 @@
-import { Injectable, BadRequestException, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { Participant } from 'src/models/models';
 import { TournamentService } from 'src/tournament/tournament.service';
 
 @Injectable()
 export class ParticipantService {
   constructor(
-    @Inject(TournamentService)
+    @Inject(forwardRef(() => TournamentService))
     private readonly tournamentService: TournamentService,
   ) {}
 
@@ -20,17 +25,17 @@ export class ParticipantService {
     }
     if (tournament.maxParticipants != null) {
       if (tournament.participants.length < tournament.maxParticipants) {
-        return this.tournamentService.addParticipant(tournamentId, participant);
+        return this.addParticipant(tournamentId, participant);
       } else {
         throw new BadRequestException('Maximum participants reached');
       }
     } else {
-      return this.tournamentService.addParticipant(tournamentId, participant);
+      return this.addParticipant(tournamentId, participant);
     }
   }
 
   getParticipants(tournamentId: string): Participant[] {
-    return this.tournamentService.getParticipants(tournamentId);
+    return this.getParticipants(tournamentId);
   }
 
   removeParticipant(tournamentId: string, participantId: string) {
@@ -42,9 +47,6 @@ export class ParticipantService {
       );
     }
     tournament.currentParticipantNb--;
-    return this.tournamentService.removeParticipant(
-      tournamentId,
-      participantId,
-    );
+    return this.removeParticipant(tournamentId, participantId);
   }
 }

@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { TournamentPhaseType } from '../../models/models';
+import { TournamentPhaseType } from 'src/models/models';
 
 export class TournamentPhase {
   id: string;

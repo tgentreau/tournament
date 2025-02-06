@@ -1,10 +1,10 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ParticipantService } from './participant.service';
 import { TournamentModule } from 'src/tournament/tournament.module';
 
 @Module({
-  imports: [TournamentModule],
+  imports: [forwardRef(() => TournamentModule)],
   providers: [ParticipantService],
-  controllers: [TournamentModule],
+  exports: [ParticipantService],
 })
 export class ParticipantModule {}

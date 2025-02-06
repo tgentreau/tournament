@@ -1,10 +1,7 @@
 import {
-  HttpException,
-  HttpStatus,
   Injectable,
   NotFoundException,
   BadRequestException,
-  Inject,
 } from '@nestjs/common';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { UpdateTournamentDto } from './dto/update-tournament.dto';
@@ -15,16 +12,10 @@ import {
   TournamentPhaseType,
 } from '../models/models';
 import { TournamentPhase } from '../entities/tournamentPhase.entity';
-import { Participant } from 'src/models/models';
-import { ParticipantService } from 'src/participant/participant.service';
 
 @Injectable()
 export class TournamentService {
-  constructor(
-    @Inject()
-    private readonly participantService: ParticipantService,
-    private readonly tournamentRepository: TournamentRepository,
-  ) {}
+  constructor(private readonly tournamentRepository: TournamentRepository) {}
 
   create(createTournamentDto: CreateTournamentDto): string {
     if (!createTournamentDto.name) {
@@ -102,50 +93,5 @@ export class TournamentService {
 
   getLastPhaseFromTournament(tournament: Tournament): TournamentPhase {
     return tournament.phases[tournament.phases.length - 1];
-  }
-
-  addParticipant(tournamentId: string, participant: Participant) {
-    const tournament = this.findOne(tournamentId);
-    tournament.currentParticipantNb++;
-
-    if (tournament.status !== 'Not Started') {
-      throw new BadRequestException(
-        'Cannot add participant to a started tournament',
-      );
-    }
-    if (tournament.maxParticipants != null) {
-      if (tournament.participants.length < tournament.maxParticipants) {
-        return this.tournamentRepository.addParticipant(
-          tournamentId,
-          participant,
-        );
-      } else {
-        throw new BadRequestException('Maximum participants reached');
-      }
-    } else {
-      return this.tournamentRepository.addParticipant(
-        tournamentId,
-        participant,
-      );
-    }
-  }
-
-  getParticipants(tournamentId: string): Participant[] {
-    return this.tournamentRepository.getParticipants(tournamentId);
-  }
-
-  removeParticipant(tournamentId: string, participantId: string) {
-    const tournament = this.findOne(tournamentId);
-
-    if (tournament.status !== 'Not Started') {
-      throw new BadRequestException(
-        'Cannot remove participant from a started tournament',
-      );
-    }
-    tournament.currentParticipantNb--;
-    return this.tournamentRepository.removeParticipant(
-      tournamentId,
-      participantId,
-    );
   }
 }

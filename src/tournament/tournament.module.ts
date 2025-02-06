@@ -8,5 +8,6 @@ import { ParticipantModule } from 'src/participant/participant.module';
   imports: [ParticipantModule],
   controllers: [TournamentController],
   providers: [TournamentService, TournamentRepository],
+  exports: [TournamentService],
 })
 export class TournamentModule {}

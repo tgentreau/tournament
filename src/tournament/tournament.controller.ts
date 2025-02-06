@@ -4,9 +4,11 @@ import {
   Delete,
   Get,
   HttpCode,
+  Inject,
   Param,
   Patch,
   Post,
+  forwardRef,
 } from '@nestjs/common';
 import { TournamentService } from './tournament.service';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
@@ -14,10 +16,15 @@ import { UpdateTournamentDto } from './dto/update-tournament.dto';
 import { Tournament } from '../entities/tournament.entity';
 import { TournamentPhaseInterface } from '../models/models';
 import { Participant } from 'src/models/models';
+import { ParticipantService } from 'src/participant/participant.service';
 
 @Controller('tournament')
 export class TournamentController {
-  constructor(private readonly tournamentService: TournamentService) {}
+  constructor(
+    private readonly tournamentService: TournamentService,
+    @Inject(forwardRef(() => ParticipantService))
+    private readonly participantService: ParticipantService,
+  ) {}
 
   @Post()
   create(@Body() createTournamentDto: CreateTournamentDto) {
@@ -56,12 +63,12 @@ export class TournamentController {
 
   @Post(':id/participants')
   addParticipant(@Param('id') id: string, @Body() participant: Participant) {
-    return this.tournamentService.addParticipant(id, participant);
+    return this.participantService.addParticipant(id, participant);
   }
 
   @Get(':id/participants')
   getParticipants(@Param('id') id: string) {
-    return this.tournamentService.getParticipants(id);
+    return this.participantService.getParticipants(id);
   }
 
   @Delete(':id/participants/:participantId')
@@ -69,6 +76,6 @@ export class TournamentController {
     @Param('id') id: string,
     @Param('participantId') participantId: string,
   ) {
-    return this.tournamentService.removeParticipant(id, participantId);
+    return this.participantService.removeParticipant(id, participantId);
   }
 }

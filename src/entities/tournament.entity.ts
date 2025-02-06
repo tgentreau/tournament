@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Participant, TournamentPhaseType } from '../../models/models';
-import { CreateTournamentDto } from '../dto/create-tournament.dto';
+import { Participant, TournamentPhaseType } from 'src/models/models';
+import { CreateTournamentDto } from 'src/tournament/dto/create-tournament.dto';
 import { TournamentPhase } from './tournamentPhase.entity';
 
 export class Tournament {
