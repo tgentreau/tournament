@@ -12,8 +12,9 @@ import { Tournament } from './entities/tournament.entity';
 import {
   TournamentPhaseInterface,
   TournamentPhaseType,
+  TournamentStatus,
 } from '../models/models';
-import { TournamentPhase } from './entities/tournamentPhase.entity';
+import { Phase } from './entities/phase.entity';
 import { Participant } from 'src/models/models';
 import { QueryFailedError } from 'typeorm';
 import { UniqueConstraintException } from './exceptions/uniqueConstraintException';
@@ -26,15 +27,15 @@ export class TournamentService {
 
   create(createTournamentDto: CreateTournamentDto): string {
     try{
-      const tournament: Tournament = new Tournament(createTournamentDto);
+      const tournament: Tournament = new Tournament();
+      tournament.name = createTournamentDto.name;
+      tournament.maxParticipants = createTournamentDto.maxParticipants;
       return this.tournamentRepository.saveTournament(tournament);
     }catch(error){
       if (error instanceof QueryFailedError) {
-        // Le code d'erreur 23505 correspond à une violation de contrainte unique dans PostgreSQL
         if (error.driverError?.code === '23505') {
           throw new UniqueConstraintException('name');
         }
-        // Le code d'erreur 23502 correspond à essayer de mettre du null dans un champ non null
         if (error.driverError?.code === '23502') {
           throw new NullConstraintException('name');
         }
@@ -81,12 +82,12 @@ export class TournamentService {
     if (!tournament) {
       throw new NotExistingException("tournoi");
     }
-    if (tournament.status !== 'Not Started') {
+    if (tournament.status !== TournamentStatus.NotStarted) {
       throw new BadRequestException('Impossible d\'ajouter une phase à un tournoi commencé');
     }
     if (
       tournament.phases.length > 0 &&
-      this.getLastPhaseFromTournament(tournament).type ===
+      this.getLastPhaseFromTournament(tournament) ===
         TournamentPhaseType.SingleBracketElimination
     ) {
       throw new BadRequestException(
@@ -94,7 +95,8 @@ export class TournamentService {
       );
     }
    try{ 
-    const phase = new TournamentPhase(phaseType.type as TournamentPhaseType);
+    const phase = new Phase();
+    phase.type = phaseType.type;
     tournament.addPhase(phase);
     return tournament;
   }catch(error){
@@ -107,14 +109,12 @@ export class TournamentService {
   }
   }
 
-  getLastPhaseFromTournament(tournament: Tournament): TournamentPhase {
-    return tournament.phases[tournament.phases.length - 1];
+  getLastPhaseFromTournament(tournament: Tournament): TournamentPhaseType {
+    return tournament.phases[tournament.phases.length - 1].type;
   }
 
   addParticipant(tournamentId: string, participant: Participant) {
     const tournament = this.findOne(tournamentId);
-    tournament.currentParticipantNb++;
-
     if (tournament.status !== 'Not Started') {
       throw new BadRequestException(
         'Cannot add participant to a started tournament',
@@ -149,7 +149,6 @@ export class TournamentService {
         'Cannot remove participant from a started tournament',
       );
     }
-    tournament.currentParticipantNb--;
     return this.tournamentRepository.removeParticipant(
       tournamentId,
       participantId,
