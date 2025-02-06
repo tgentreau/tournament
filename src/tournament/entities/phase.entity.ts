@@ -1,22 +1,28 @@
 import { TournamentPhaseType } from '../../models/models';
-import { Column, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Tournament } from './tournament.entity';
 import { Round } from './round.entity';
 
+@Entity()
 export class Phase {
-
-  @PrimaryGeneratedColumn('uuid') 
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({
-      type: 'enum',
-      enum: TournamentPhaseType,
+    type: 'enum',
+    enum: TournamentPhaseType,
   })
   type: TournamentPhaseType;
 
-  @ManyToOne(() => Tournament, tournament => tournament.phases)
-  tournament: Tournament; 
+  @ManyToOne(() => Tournament, (tournament) => tournament.phases)
+  tournament: Tournament;
 
-  @OneToMany(() => Round, round => round.phase)
+  @OneToMany(() => Round, (round) => round.phase)
   rounds: Round[];
 }
