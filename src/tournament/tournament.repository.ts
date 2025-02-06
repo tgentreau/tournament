@@ -39,7 +39,7 @@ export class TournamentRepository {
     ) {
       throw new BadRequestException('Invalid participant name');
     }
-    if (!Number.isInteger(participant.elo)) {
+    if (!participant.elo || typeof participant.elo !== 'number') {
       throw new BadRequestException('Invalid participant elo');
     }
     if (!tournament.participants) {

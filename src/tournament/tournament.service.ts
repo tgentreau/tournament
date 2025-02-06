@@ -25,7 +25,15 @@ export class TournamentService {
   ) {}
 
   create(createTournamentDto: CreateTournamentDto): string {
+    if (!createTournamentDto.name) {
+      throw new BadRequestException('Le nom est requis');
+    }
+
     const tournament: Tournament = new Tournament(createTournamentDto);
+    const tournaments: Tournament[] = this.findAll();
+    if (tournaments.some((t) => t.name === tournament.name)) {
+      throw new BadRequestException('Un tournoi avec ce nom existe déjà');
+    }
     return this.tournamentRepository.saveTournament(tournament);
   }
 
@@ -47,15 +55,11 @@ export class TournamentService {
       throw new NotFoundException('Tournament not found');
     }
     if (updateTournamentDto.status === 'Not Started') {
-      throw new HttpException(
-        'Invalid status : Not Started',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('Invalid status : Not Started');
     }
 
     tournament.status = updateTournamentDto.status;
     this.tournamentRepository.saveTournament(tournament);
-    throw new HttpException('', HttpStatus.NO_CONTENT);
   }
 
   remove(id: string) {
@@ -100,13 +104,28 @@ export class TournamentService {
 
   addParticipant(tournamentId: string, participant: Participant) {
     const tournament = this.findOne(tournamentId);
+    tournament.currentParticipantNb++;
 
     if (tournament.status !== 'Not Started') {
       throw new BadRequestException(
         'Cannot add participant to a started tournament',
       );
     }
-    return this.tournamentRepository.addParticipant(tournamentId, participant);
+    if (tournament.maxParticipants != null) {
+      if (tournament.participants.length < tournament.maxParticipants) {
+        return this.tournamentRepository.addParticipant(
+          tournamentId,
+          participant,
+        );
+      } else {
+        throw new BadRequestException('Maximum participants reached');
+      }
+    } else {
+      return this.tournamentRepository.addParticipant(
+        tournamentId,
+        participant,
+      );
+    }
   }
 
   getParticipants(tournamentId: string): Participant[] {
@@ -121,6 +140,7 @@ export class TournamentService {
         'Cannot remove participant from a started tournament',
       );
     }
+    tournament.currentParticipantNb--;
     return this.tournamentRepository.removeParticipant(
       tournamentId,
       participantId,
