@@ -13,24 +13,33 @@ import {
   TournamentPhaseInterface,
   TournamentPhaseType,
 } from '../models/models';
-import { TournamentPhase } from './entities/phase.entity';
+import { TournamentPhase } from './entities/tournamentPhase.entity';
 import { Participant } from 'src/models/models';
-
+import { QueryFailedError } from 'typeorm';
+import { UniqueConstraintException } from './exceptions/uniqueConstraintException';
+import { NullConstraintException } from './exceptions/nullConstraintException';
+import { NotExistingException } from './exceptions/notExistingException';
+import { InvalidStatusException } from './exceptions/invalidStatusException';
 @Injectable()
 export class TournamentService {
   constructor(private readonly tournamentRepository: TournamentRepository) {}
 
   create(createTournamentDto: CreateTournamentDto): string {
-    if (!createTournamentDto.name) {
-      throw new BadRequestException('Le nom est requis');
+    try{
+      const tournament: Tournament = new Tournament(createTournamentDto);
+      return this.tournamentRepository.saveTournament(tournament);
+    }catch(error){
+      if (error instanceof QueryFailedError) {
+        // Le code d'erreur 23505 correspond à une violation de contrainte unique dans PostgreSQL
+        if (error.driverError?.code === '23505') {
+          throw new UniqueConstraintException('name');
+        }
+        // Le code d'erreur 23502 correspond à essayer de mettre du null dans un champ non null
+        if (error.driverError?.code === '23502') {
+          throw new NullConstraintException('name');
+        }
+      }
     }
-
-    const tournament: Tournament = new Tournament(createTournamentDto);
-    const tournaments: Tournament[] = this.findAll();
-    if (tournaments.some((t) => t.name === tournament.name)) {
-      throw new BadRequestException('Un tournoi avec ce nom existe déjà');
-    }
-    return this.tournamentRepository.saveTournament(tournament);
   }
 
   findAll(): Tournament[] {
@@ -40,7 +49,7 @@ export class TournamentService {
   findOne(id: string): Tournament {
     const tournament: Tournament = this.tournamentRepository.getTournament(id);
     if (tournament === undefined) {
-      throw new NotFoundException("Le tournoi n'existe pas");
+      throw new NotExistingException("tournoi");
     }
     return tournament;
   }
@@ -48,19 +57,20 @@ export class TournamentService {
   update(id: string, updateTournamentDto: UpdateTournamentDto) {
     const tournament = this.findOne(id);
     if (!tournament) {
-      throw new NotFoundException('Tournament not found');
+      throw new NotExistingException("tournoi");
     }
-    if (updateTournamentDto.status === 'Not Started') {
-      throw new BadRequestException('Invalid status : Not Started');
+    try{
+      tournament.status = updateTournamentDto.status;
+      this.tournamentRepository.saveTournament(tournament);
+      throw new HttpException('', HttpStatus.NO_CONTENT);
+    }catch(error){
+      if (error instanceof QueryFailedError) {
+        // Le code d'erreur 22P02 correspond à insérer/update une valeur invalide dans un champ de type ENUM
+        if (error.driverError?.code === '22P02') {
+          throw new InvalidStatusException();
+        }
+      }
     }
-
-    tournament.status = updateTournamentDto.status;
-    this.tournamentRepository.saveTournament(tournament);
-    throw new HttpException('', HttpStatus.NO_CONTENT);
-  }
-
-  remove(id: string) {
-    return `This action removes a #${id} tournament`;
   }
 
   addPhaseToTournament(
@@ -69,17 +79,10 @@ export class TournamentService {
   ): Tournament {
     const tournament = this.findOne(tournamentId);
     if (!tournament) {
-      throw new BadRequestException('Tournament not found');
+      throw new NotExistingException("tournoi");
     }
     if (tournament.status !== 'Not Started') {
-      throw new BadRequestException('Cannot add phase to a started tournament');
-    }
-    if (
-      !Object.values(TournamentPhaseType).includes(
-        phaseType.type as TournamentPhaseType,
-      )
-    ) {
-      throw new BadRequestException(`Invalid phase type: ${phaseType.type}`);
+      throw new BadRequestException('Impossible d\'ajouter une phase à un tournoi commencé');
     }
     if (
       tournament.phases.length > 0 &&
@@ -87,12 +90,21 @@ export class TournamentService {
         TournamentPhaseType.SingleBracketElimination
     ) {
       throw new BadRequestException(
-        'Cannot add a phase to a tournament with a SingleBracketElimination phase',
+        'Impossible d\'ajouter une phase à un tournoi avec une phase de type SingleBracketElimination',
       );
     }
+   try{ 
     const phase = new TournamentPhase(phaseType.type as TournamentPhaseType);
     tournament.addPhase(phase);
     return tournament;
+  }catch(error){
+    if (error instanceof QueryFailedError) {
+      // Le code d'erreur 22P02 correspond à insérer/update une valeur invalide dans un champ de type ENUM
+      if (error.driverError?.code === '22P02') {
+        throw new InvalidStatusException();
+      }
+    }
+  }
   }
 
   getLastPhaseFromTournament(tournament: Tournament): TournamentPhase {
