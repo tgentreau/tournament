@@ -24,12 +24,12 @@ export class TournamentController {
   }
 
   @Get()
-  findAll(): Tournament[] {
+  findAll(): Promise<Tournament[]> {
     return this.tournamentService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Tournament {
+  findOne(@Param('id') id: string): Promise<Tournament> {
     return this.tournamentService.findOne(id);
   }
 
@@ -41,32 +41,32 @@ export class TournamentController {
     return this.tournamentService.update(id, updateTournamentDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.tournamentService.remove(id);
-  }
+  // @Delete(':id')
+  // remove(@Param('id') id: string) {
+  //   return this.tournamentService.remove(id);
+  // }
 
-  @Post(':id/phase')
-  addPhase(@Param('id') id: string, @Body() body: TournamentPhaseInterface) {
-    console.log(body);
-    return this.tournamentService.addPhaseToTournament(id, body);
-  }
+  // @Post(':id/phase')
+  // addPhase(@Param('id') id: string, @Body() body: TournamentPhaseInterface) {
+  //   console.log(body);
+  //   return this.tournamentService.addPhaseToTournament(id, body);
+  // }
 
-  @Post(':id/participants')
-  addParticipant(@Param('id') id: string, @Body() participant: Participant) {
-    return this.tournamentService.addParticipant(id, participant);
-  }
+  // @Post(':id/participants')
+  // addParticipant(@Param('id') id: string, @Body() participant: Participant) {
+  //   return this.tournamentService.addParticipant(id, participant);
+  // }
 
-  @Get(':id/participants')
-  getParticipants(@Param('id') id: string) {
-    return this.tournamentService.getParticipants(id);
-  }
+  // @Get(':id/participants')
+  // getParticipants(@Param('id') id: string) {
+  //   return this.tournamentService.getParticipants(id);
+  // }
 
-  @Delete(':id/participants/:participantId')
-  removeParticipant(
-    @Param('id') id: string,
-    @Param('participantId') participantId: string,
-  ) {
-    return this.tournamentService.removeParticipant(id, participantId);
-  }
+  // @Delete(':id/participants/:participantId')
+  // removeParticipant(
+  //   @Param('id') id: string,
+  //   @Param('participantId') participantId: string,
+  // ) {
+  //   return this.tournamentService.removeParticipant(id, participantId);
+  // }
 }

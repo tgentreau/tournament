@@ -1,4 +1,4 @@
-import { TournamentPhaseType, TournamentStatus } from '../../models/models';
+import { TournamentStatus } from '../../models/models';
 import { Participant } from './participant.entity';
 import { Phase } from './phase.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
@@ -9,10 +9,12 @@ export class Tournament {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({
+    unique: true
+  })
   name: string;
 
-  @Column()
+  @Column({ nullable: true })
   maxParticipants?: number;
 
   @OneToMany(() => Phase, phase => phase.tournament)

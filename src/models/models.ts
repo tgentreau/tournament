@@ -10,7 +10,7 @@ export enum TournamentStatus {
 }
 
 export interface TournamentPhaseInterface {
-  type: string;
+  type: TournamentPhaseType;
 }
 
 export interface Round {

@@ -4,49 +4,49 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Inject,
 } from '@nestjs/common';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { UpdateTournamentDto } from './dto/update-tournament.dto';
-import { TournamentRepository } from './tournament.repository';
 import { Tournament } from './entities/tournament.entity';
 import {
   TournamentPhaseInterface,
   TournamentPhaseType,
+  TournamentStatus,
 } from '../models/models';
-import { TournamentPhase } from './entities/phase.entity';
 import { Participant } from 'src/models/models';
+import { Repository } from 'typeorm';
+import { Phase } from './entities/phase.entity';
 
 @Injectable()
 export class TournamentService {
-  constructor(private readonly tournamentRepository: TournamentRepository) {}
+  constructor(
+    @Inject('TOURNAMENT_REPOSITORY')
+    private readonly tournamentRepository: Repository<Tournament>
+  ) {}
 
-  create(createTournamentDto: CreateTournamentDto): string {
-    if (!createTournamentDto.name) {
-      throw new BadRequestException('Le nom est requis');
-    }
-
-    const tournament: Tournament = new Tournament(createTournamentDto);
-    const tournaments: Tournament[] = this.findAll();
-    if (tournaments.some((t) => t.name === tournament.name)) {
-      throw new BadRequestException('Un tournoi avec ce nom existe déjà');
-    }
-    return this.tournamentRepository.saveTournament(tournament);
+  async create(createTournamentDto: CreateTournamentDto): Promise<string> {
+    const tournament: Tournament = new Tournament();
+    tournament.name = createTournamentDto.name;
+    tournament.maxParticipants = createTournamentDto.maxParticipants;
+    const createdTournament: Tournament = await this.tournamentRepository.save(tournament);
+    return createdTournament.id;
   }
 
-  findAll(): Tournament[] {
-    return this.tournamentRepository.getAllTournaments();
+  async findAll(): Promise<Tournament[]> {
+    return this.tournamentRepository.find();
   }
 
-  findOne(id: string): Tournament {
-    const tournament: Tournament = this.tournamentRepository.getTournament(id);
+  async findOne(id: string): Promise<Tournament> {
+    const tournament: Tournament = await this.tournamentRepository.find({where: { id: id }, take: 1})[0];
     if (tournament === undefined) {
       throw new NotFoundException("Le tournoi n'existe pas");
     }
     return tournament;
   }
 
-  update(id: string, updateTournamentDto: UpdateTournamentDto) {
-    const tournament = this.findOne(id);
+  async update(id: string, updateTournamentDto: UpdateTournamentDto) {
+    const tournament = await this.findOne(id);
     if (!tournament) {
       throw new NotFoundException('Tournament not found');
     }
@@ -55,92 +55,89 @@ export class TournamentService {
     }
 
     tournament.status = updateTournamentDto.status;
-    this.tournamentRepository.saveTournament(tournament);
+    this.tournamentRepository.save(tournament);
     throw new HttpException('', HttpStatus.NO_CONTENT);
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} tournament`;
-  }
+  // async addPhaseToTournament(
+  //   tournamentId: string,
+  //   phaseType: TournamentPhaseInterface,
+  // ): Promise<Tournament> {
+  //   const tournament = await this.findOne(tournamentId);
+  //   if (!tournament) {
+  //     throw new BadRequestException('Tournament not found');
+  //   }
+  //   if (tournament.status !== TournamentStatus.NotStarted) {
+  //     throw new BadRequestException('Cannot add phase to a started tournament');
+  //   }
+  //   if (
+  //     !Object.values(TournamentPhaseType).includes(
+  //       phaseType.type as TournamentPhaseType,
+  //     )
+  //   ) {
+  //     throw new BadRequestException(`Invalid phase type: ${phaseType.type}`);
+  //   }
+  //   if (
+  //     tournament.phases.length > 0 &&
+  //     this.getLastPhaseFromTournament(tournament).type ===
+  //       TournamentPhaseType.SingleBracketElimination
+  //   ) {
+  //     throw new BadRequestException(
+  //       'Cannot add a phase to a tournament with a SingleBracketElimination phase',
+  //     );
+  //   }
+  //   const phase = new Phase();
+  //   phase.type = phaseType.type;
+  //   tournament.addPhase(phase);
+  //   return tournament;
+  // }
 
-  addPhaseToTournament(
-    tournamentId: string,
-    phaseType: TournamentPhaseInterface,
-  ): Tournament {
-    const tournament = this.findOne(tournamentId);
-    if (!tournament) {
-      throw new BadRequestException('Tournament not found');
-    }
-    if (tournament.status !== 'Not Started') {
-      throw new BadRequestException('Cannot add phase to a started tournament');
-    }
-    if (
-      !Object.values(TournamentPhaseType).includes(
-        phaseType.type as TournamentPhaseType,
-      )
-    ) {
-      throw new BadRequestException(`Invalid phase type: ${phaseType.type}`);
-    }
-    if (
-      tournament.phases.length > 0 &&
-      this.getLastPhaseFromTournament(tournament).type ===
-        TournamentPhaseType.SingleBracketElimination
-    ) {
-      throw new BadRequestException(
-        'Cannot add a phase to a tournament with a SingleBracketElimination phase',
-      );
-    }
-    const phase = new TournamentPhase(phaseType.type as TournamentPhaseType);
-    tournament.addPhase(phase);
-    return tournament;
-  }
+  // getLastPhaseFromTournament(tournament: Tournament): Phase {
+  //   return tournament.phases[tournament.phases.length - 1];
+  // }
 
-  getLastPhaseFromTournament(tournament: Tournament): TournamentPhase {
-    return tournament.phases[tournament.phases.length - 1];
-  }
+  // addParticipant(tournamentId: string, participant: Participant) {
+  //   const tournament = this.findOne(tournamentId);
+  //   tournament.currentParticipantNb++;
 
-  addParticipant(tournamentId: string, participant: Participant) {
-    const tournament = this.findOne(tournamentId);
-    tournament.currentParticipantNb++;
+  //   if (tournament.status !== 'Not Started') {
+  //     throw new BadRequestException(
+  //       'Cannot add participant to a started tournament',
+  //     );
+  //   }
+  //   if (tournament.maxParticipants != null) {
+  //     if (tournament.participants.length < tournament.maxParticipants) {
+  //       return this.tournamentRepository.addParticipant(
+  //         tournamentId,
+  //         participant,
+  //       );
+  //     } else {
+  //       throw new BadRequestException('Maximum participants reached');
+  //     }
+  //   } else {
+  //     return this.tournamentRepository.addParticipant(
+  //       tournamentId,
+  //       participant,
+  //     );
+  //   }
+  // }
 
-    if (tournament.status !== 'Not Started') {
-      throw new BadRequestException(
-        'Cannot add participant to a started tournament',
-      );
-    }
-    if (tournament.maxParticipants != null) {
-      if (tournament.participants.length < tournament.maxParticipants) {
-        return this.tournamentRepository.addParticipant(
-          tournamentId,
-          participant,
-        );
-      } else {
-        throw new BadRequestException('Maximum participants reached');
-      }
-    } else {
-      return this.tournamentRepository.addParticipant(
-        tournamentId,
-        participant,
-      );
-    }
-  }
+  // getParticipants(tournamentId: string): Participant[] {
+  //   return this.tournamentRepository.getParticipants(tournamentId);
+  // }
 
-  getParticipants(tournamentId: string): Participant[] {
-    return this.tournamentRepository.getParticipants(tournamentId);
-  }
+  // removeParticipant(tournamentId: string, participantId: string) {
+  //   const tournament = this.findOne(tournamentId);
 
-  removeParticipant(tournamentId: string, participantId: string) {
-    const tournament = this.findOne(tournamentId);
-
-    if (tournament.status !== 'Not Started') {
-      throw new BadRequestException(
-        'Cannot remove participant from a started tournament',
-      );
-    }
-    tournament.currentParticipantNb--;
-    return this.tournamentRepository.removeParticipant(
-      tournamentId,
-      participantId,
-    );
-  }
+  //   if (tournament.status !== 'Not Started') {
+  //     throw new BadRequestException(
+  //       'Cannot remove participant from a started tournament',
+  //     );
+  //   }
+  //   tournament.currentParticipantNb--;
+  //   return this.tournamentRepository.removeParticipant(
+  //     tournamentId,
+  //     participantId,
+  //   );
+  // }
 }

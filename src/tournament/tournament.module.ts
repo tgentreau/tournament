@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TournamentService } from './tournament.service';
 import { TournamentController } from './tournament.controller';
-import { TournamentRepository } from './tournament.repository';
+import { tournamentProviders } from './providers/tournament.providers';
+import { ConfigModule } from 'src/config/config.module';
 
 @Module({
+  imports: [ConfigModule],
   controllers: [TournamentController],
-  providers: [TournamentService, TournamentRepository],
+  providers: [...tournamentProviders, TournamentService],
 })
 export class TournamentModule {}
