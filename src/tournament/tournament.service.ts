@@ -10,6 +10,7 @@ import { UpdateTournamentDto } from './dto/update-tournament.dto';
 import { TournamentRepository } from './tournament.repository';
 import { Tournament } from './entities/tournament.entity';
 import {
+  PostgresErrorCode,
   TournamentPhaseInterface,
   TournamentPhaseType,
   TournamentStatus,
@@ -33,10 +34,10 @@ export class TournamentService {
       return this.tournamentRepository.saveTournament(tournament);
     }catch(error){
       if (error instanceof QueryFailedError) {
-        if (error.driverError?.code === '23505') {
+        if (error.driverError?.code === PostgresErrorCode.UniqueValueViolation) {
           throw new UniqueConstraintException('name');
         }
-        if (error.driverError?.code === '23502') {
+        if (error.driverError?.code === PostgresErrorCode.NullValueNotAllowed) {
           throw new NullConstraintException('name');
         }
       }
@@ -66,8 +67,7 @@ export class TournamentService {
       throw new HttpException('', HttpStatus.NO_CONTENT);
     }catch(error){
       if (error instanceof QueryFailedError) {
-        // Le code d'erreur 22P02 correspond à insérer/update une valeur invalide dans un champ de type ENUM
-        if (error.driverError?.code === '22P02') {
+        if (error.driverError?.code === PostgresErrorCode.InvalidEnumValue) {
           throw new InvalidStatusException();
         }
       }
@@ -101,8 +101,7 @@ export class TournamentService {
     return tournament;
   }catch(error){
     if (error instanceof QueryFailedError) {
-      // Le code d'erreur 22P02 correspond à insérer/update une valeur invalide dans un champ de type ENUM
-      if (error.driverError?.code === '22P02') {
+      if (error.driverError?.code === PostgresErrorCode.InvalidEnumValue) {
         throw new InvalidStatusException();
       }
     }
