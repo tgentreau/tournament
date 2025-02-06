@@ -59,85 +59,85 @@ export class TournamentService {
     throw new HttpException('', HttpStatus.NO_CONTENT);
   }
 
-  // async addPhaseToTournament(
-  //   tournamentId: string,
-  //   phaseType: TournamentPhaseInterface,
-  // ): Promise<Tournament> {
-  //   const tournament = await this.findOne(tournamentId);
-  //   if (!tournament) {
-  //     throw new BadRequestException('Tournament not found');
-  //   }
-  //   if (tournament.status !== TournamentStatus.NotStarted) {
-  //     throw new BadRequestException('Cannot add phase to a started tournament');
-  //   }
-  //   if (
-  //     !Object.values(TournamentPhaseType).includes(
-  //       phaseType.type as TournamentPhaseType,
-  //     )
-  //   ) {
-  //     throw new BadRequestException(`Invalid phase type: ${phaseType.type}`);
-  //   }
-  //   if (
-  //     tournament.phases.length > 0 &&
-  //     this.getLastPhaseFromTournament(tournament).type ===
-  //       TournamentPhaseType.SingleBracketElimination
-  //   ) {
-  //     throw new BadRequestException(
-  //       'Cannot add a phase to a tournament with a SingleBracketElimination phase',
-  //     );
-  //   }
-  //   const phase = new Phase();
-  //   phase.type = phaseType.type;
-  //   tournament.addPhase(phase);
-  //   return tournament;
-  // }
+  async addPhaseToTournament(
+    tournamentId: string,
+    phaseType: TournamentPhaseInterface,
+  ): Promise<Tournament> {
+    const tournament = await this.findOne(tournamentId);
+    if (!tournament) {
+      throw new BadRequestException('Tournament not found');
+    }
+    if (tournament.status !== TournamentStatus.NotStarted) {
+      throw new BadRequestException('Cannot add phase to a started tournament');
+    }
+    if (
+      !Object.values(TournamentPhaseType).includes(
+        phaseType.type as TournamentPhaseType,
+      )
+    ) {
+      throw new BadRequestException(`Invalid phase type: ${phaseType.type}`);
+    }
+    if (
+      tournament.phases.length > 0 &&
+      this.getLastPhaseFromTournament(tournament).type ===
+        TournamentPhaseType.SingleBracketElimination
+    ) {
+      throw new BadRequestException(
+        'Cannot add a phase to a tournament with a SingleBracketElimination phase',
+      );
+    }
+    const phase = new Phase();
+    phase.type = phaseType.type;
+    tournament.addPhase(phase);
+    return tournament;
+  }
 
-  // getLastPhaseFromTournament(tournament: Tournament): Phase {
-  //   return tournament.phases[tournament.phases.length - 1];
-  // }
+  getLastPhaseFromTournament(tournament: Tournament): Phase {
+    return tournament.phases[tournament.phases.length - 1];
+  }
 
-  // addParticipant(tournamentId: string, participant: Participant) {
-  //   const tournament = this.findOne(tournamentId);
-  //   tournament.currentParticipantNb++;
+  addParticipant(tournamentId: string, participant: Participant) {
+    const tournament = this.findOne(tournamentId);
+    tournament.currentParticipantNb++;
 
-  //   if (tournament.status !== 'Not Started') {
-  //     throw new BadRequestException(
-  //       'Cannot add participant to a started tournament',
-  //     );
-  //   }
-  //   if (tournament.maxParticipants != null) {
-  //     if (tournament.participants.length < tournament.maxParticipants) {
-  //       return this.tournamentRepository.addParticipant(
-  //         tournamentId,
-  //         participant,
-  //       );
-  //     } else {
-  //       throw new BadRequestException('Maximum participants reached');
-  //     }
-  //   } else {
-  //     return this.tournamentRepository.addParticipant(
-  //       tournamentId,
-  //       participant,
-  //     );
-  //   }
-  // }
+    if (tournament.status !== 'Not Started') {
+      throw new BadRequestException(
+        'Cannot add participant to a started tournament',
+      );
+    }
+    if (tournament.maxParticipants != null) {
+      if (tournament.participants.length < tournament.maxParticipants) {
+        return this.tournamentRepository.addParticipant(
+          tournamentId,
+          participant,
+        );
+      } else {
+        throw new BadRequestException('Maximum participants reached');
+      }
+    } else {
+      return this.tournamentRepository.addParticipant(
+        tournamentId,
+        participant,
+      );
+    }
+  }
 
-  // getParticipants(tournamentId: string): Participant[] {
-  //   return this.tournamentRepository.getParticipants(tournamentId);
-  // }
+  getParticipants(tournamentId: string): Participant[] {
+    return this.tournamentRepository.getParticipants(tournamentId);
+  }
 
-  // removeParticipant(tournamentId: string, participantId: string) {
-  //   const tournament = this.findOne(tournamentId);
+  removeParticipant(tournamentId: string, participantId: string) {
+    const tournament = this.findOne(tournamentId);
 
-  //   if (tournament.status !== 'Not Started') {
-  //     throw new BadRequestException(
-  //       'Cannot remove participant from a started tournament',
-  //     );
-  //   }
-  //   tournament.currentParticipantNb--;
-  //   return this.tournamentRepository.removeParticipant(
-  //     tournamentId,
-  //     participantId,
-  //   );
-  // }
+    if (tournament.status !== 'Not Started') {
+      throw new BadRequestException(
+        'Cannot remove participant from a started tournament',
+      );
+    }
+    tournament.currentParticipantNb--;
+    return this.tournamentRepository.removeParticipant(
+      tournamentId,
+      participantId,
+    );
+  }
 }
