@@ -11,6 +11,7 @@ export class Tournament {
   phases: TournamentPhase[];
   participants: Participant[];
   status: TournamentStatus;
+
   constructor(tournamentDTO: CreateTournamentDto) {
     this.id = uuidv4();
     this.name = tournamentDTO.name;
