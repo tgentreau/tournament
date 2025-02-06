@@ -3,7 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { TournamentModule } from '../tournament.module';
 import { TournamentPhaseType } from '../../models/models';
-import { TournamentStatus } from '../entities/tournament.entity';
+import { TournamentStatus } from 'src/entities/tournament.entity';
 
 describe('Phase', () => {
   let app: INestApplication;
@@ -27,7 +27,7 @@ describe('Phase', () => {
     request(app.getHttpServer())
       .post(`/tournament/${tournamentId}/phase`)
       .send({
-        type: TournamentPhaseType.SingleBracketElimination
+        type: TournamentPhaseType.SingleBracketElimination,
       })
       .expect(201);
   });
@@ -35,7 +35,7 @@ describe('Phase', () => {
     request(app.getHttpServer())
       .post(`/tournament/123456/phase`)
       .send({
-        type: TournamentPhaseType.SingleBracketElimination
+        type: TournamentPhaseType.SingleBracketElimination,
       })
       .expect(400);
   });
@@ -43,7 +43,7 @@ describe('Phase', () => {
     request(app.getHttpServer())
       .post(`/tournament/${tournamentId}/phase`)
       .send({
-        type: "truc"
+        type: 'truc',
       })
       .expect(400);
   });
@@ -51,12 +51,12 @@ describe('Phase', () => {
     request(app.getHttpServer())
       .post(`/tournament/${tournamentId}/phase`)
       .send({
-        type: TournamentPhaseType.SingleBracketElimination
-      })
+        type: TournamentPhaseType.SingleBracketElimination,
+      });
     request(app.getHttpServer())
       .post(`/tournament/${tournamentId}/phase`)
       .send({
-        type: TournamentPhaseType.SwissRound
+        type: TournamentPhaseType.SwissRound,
       })
       .expect(400);
   });
@@ -65,11 +65,11 @@ describe('Phase', () => {
       .patch('/tournament/' + tournamentId)
       .send({
         status: TournamentStatus.STARTED,
-      })
+      });
     request(app.getHttpServer())
       .post(`/tournament/${tournamentId}/phase`)
       .send({
-        type: TournamentPhaseType.SingleBracketElimination
+        type: TournamentPhaseType.SingleBracketElimination,
       })
       .expect(400);
   });
@@ -77,7 +77,7 @@ describe('Phase', () => {
     request(app.getHttpServer())
       .post(`/tournament/${tournamentId}/phase`)
       .send({
-        type: "truc"
+        type: 'truc',
       })
       .expect(400);
   });

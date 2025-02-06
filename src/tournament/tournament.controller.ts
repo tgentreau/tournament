@@ -11,7 +11,7 @@ import {
 import { TournamentService } from './tournament.service';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { UpdateTournamentDto } from './dto/update-tournament.dto';
-import { Tournament } from './entities/tournament.entity';
+import { Tournament } from '../entities/tournament.entity';
 import { TournamentPhaseInterface } from '../models/models';
 import { Participant } from 'src/models/models';
 

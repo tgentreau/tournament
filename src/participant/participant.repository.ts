@@ -11,19 +11,6 @@ import { v4 as uuidv4 } from 'uuid';
 export class TournamentRepository {
   private tournaments = new Map<string, Tournament>();
 
-  public saveTournament(tournament: Tournament): string {
-    this.tournaments.set(tournament.id, tournament);
-    return tournament.id;
-  }
-
-  public getTournament(tournamentId: string): Tournament {
-    return this.tournaments.get(tournamentId);
-  }
-
-  public getAllTournaments(): Tournament[] {
-    return Array.from(this.tournaments.values());
-  }
-
   public addParticipant(
     tournamentId: string,
     participant: Omit<Participant, 'id'>,

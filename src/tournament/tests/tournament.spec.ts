@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { TournamentModule } from '../tournament.module';
-import { TournamentStatus } from '../entities/tournament.entity';
+import { TournamentStatus } from 'src/entities/tournament.entity';
 
 describe('Tournament', () => {
   let app: INestApplication;
@@ -16,8 +16,8 @@ describe('Tournament', () => {
     app = module.createNestApplication();
     await app.init();
   });
-  
-    it('200 /GET tournament', async () => {
+
+  it('200 /GET tournament', async () => {
     request(app.getHttpServer())
       .get(`/tournament/${tournamentId}`)
       .expect({
@@ -29,13 +29,11 @@ describe('Tournament', () => {
         participants: [],
         status: 'Not Started',
       })
-      .expect(200)
+      .expect(200);
   });
 
   it('404 /GET tournament', async () => {
-    request(app.getHttpServer())
-      .get(`/tournament/123456`)
-      .expect(404)
+    request(app.getHttpServer()).get(`/tournament/123456`).expect(404);
   });
 
   it('201 /POST tournament', async () => {
@@ -55,7 +53,7 @@ describe('Tournament', () => {
       .send({
         name: '',
       })
-      .expect(400)
+      .expect(400);
   });
 
   it('400 /POST tournament name already exist', async () => {

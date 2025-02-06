@@ -4,21 +4,27 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Inject,
 } from '@nestjs/common';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { UpdateTournamentDto } from './dto/update-tournament.dto';
 import { TournamentRepository } from './tournament.repository';
-import { Tournament } from './entities/tournament.entity';
+import { Tournament } from '../entities/tournament.entity';
 import {
   TournamentPhaseInterface,
   TournamentPhaseType,
 } from '../models/models';
-import { TournamentPhase } from './entities/tournamentPhase.entity';
+import { TournamentPhase } from '../entities/tournamentPhase.entity';
 import { Participant } from 'src/models/models';
+import { ParticipantService } from 'src/participant/participant.service';
 
 @Injectable()
 export class TournamentService {
-  constructor(private readonly tournamentRepository: TournamentRepository) {}
+  constructor(
+    @Inject()
+    private readonly participantService: ParticipantService,
+    private readonly tournamentRepository: TournamentRepository,
+  ) {}
 
   create(createTournamentDto: CreateTournamentDto): string {
     if (!createTournamentDto.name) {
