@@ -3,7 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { TournamentModule } from '../tournament.module';
 import { TournamentPhaseType } from '../../models/models';
-import { TournamentStatus } from '../entities/tournament.entity';
+import { TournamentStatus } from 'src/entities/tournament.entity';
 
 describe('Phase', () => {
   let app: INestApplication;

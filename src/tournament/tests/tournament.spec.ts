@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { TournamentModule } from '../tournament.module';
-import { TournamentStatus } from '../entities/tournament.entity';
+import { TournamentStatus } from 'src/entities/tournament.entity';
 
 describe('Tournament', () => {
   let app: INestApplication;
