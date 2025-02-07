@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateTournamentDto } from './create-tournament.dto';
-import { TournamentStatus } from '../entities/tournament.entity';
+import { TournamentStatus } from 'src/models/models';
 
 export class UpdateTournamentDto extends PartialType(CreateTournamentDto) {
   status: TournamentStatus;

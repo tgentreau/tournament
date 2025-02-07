@@ -1,54 +1,54 @@
 import {
-  BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
+  BadRequestException,
+  Inject,
 } from '@nestjs/common';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { UpdateTournamentDto } from './dto/update-tournament.dto';
-import { TournamentRepository } from './tournament.repository';
 import { Tournament } from './entities/tournament.entity';
 import {
   TournamentPhaseInterface,
   TournamentPhaseType,
+  TournamentStatus,
 } from '../models/models';
-import { TournamentPhase } from './entities/tournamentPhase.entity';
 import { Participant } from 'src/models/models';
 import { SingleEliminationBracketCreatorService } from './singleEliminationBracketCreator.service';
+import { Repository } from 'typeorm';
+import { Phase } from './entities/phase.entity';
 
 @Injectable()
 export class TournamentService {
   constructor(
-    private readonly tournamentRepository: TournamentRepository,
+    @Inject('TOURNAMENT_REPOSITORY')
+    private readonly tournamentRepository: Repository<Tournament>,
     private readonly singleEliminationBracketCreatorService: SingleEliminationBracketCreatorService,
   ) {}
 
-  create(createTournamentDto: CreateTournamentDto): string {
-    if (!createTournamentDto.name) {
-      throw new BadRequestException('Le nom est requis');
-    }
-
-    const tournament: Tournament = new Tournament(createTournamentDto);
-    const tournaments: Tournament[] = this.findAll();
-    if (tournaments.some((t) => t.name === tournament.name)) {
-      throw new BadRequestException('Un tournoi avec ce nom existe déjà');
-    }
-    return this.tournamentRepository.saveTournament(tournament);
+  async create(createTournamentDto: CreateTournamentDto): Promise<string> {
+    const tournament: Tournament = new Tournament();
+    tournament.name = createTournamentDto.name;
+    tournament.maxParticipants = createTournamentDto.maxParticipants;
+    const createdTournament: Tournament = await this.tournamentRepository.save(tournament);
+    return createdTournament.id;
   }
 
-  findAll(): Tournament[] {
-    return this.tournamentRepository.getAllTournaments();
+  async findAll(): Promise<Tournament[]> {
+    return this.tournamentRepository.find();
   }
 
-  findOne(id: string): Tournament {
-    const tournament: Tournament = this.tournamentRepository.getTournament(id);
+  async findOne(id: string): Promise<Tournament> {
+    const tournament: Tournament = await this.tournamentRepository.find({where: { id: id }, take: 1})[0];
     if (tournament === undefined) {
       throw new NotFoundException("Le tournoi n'existe pas");
     }
     return tournament;
   }
 
-  update(id: string, updateTournamentDto: UpdateTournamentDto) {
-    const tournament = this.findOne(id);
+  async update(id: string, updateTournamentDto: UpdateTournamentDto) {
+    const tournament = await this.findOne(id);
     if (!tournament) {
       throw new NotFoundException('Tournament not found');
     }
@@ -62,21 +62,19 @@ export class TournamentService {
         tournament.participants,
       );
     this.tournamentRepository.saveTournament(tournament);
+    throw new HttpException('', HttpStatus.NO_CONTENT);
+
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} tournament`;
-  }
-
-  addPhaseToTournament(
+  async addPhaseToTournament(
     tournamentId: string,
     phaseType: TournamentPhaseInterface,
-  ): Tournament {
-    const tournament = this.findOne(tournamentId);
+  ): Promise<Tournament> {
+    const tournament = await this.findOne(tournamentId);
     if (!tournament) {
       throw new BadRequestException('Tournament not found');
     }
-    if (tournament.status !== 'Not Started') {
+    if (tournament.status !== TournamentStatus.NotStarted) {
       throw new BadRequestException('Cannot add phase to a started tournament');
     }
     if (
@@ -95,12 +93,13 @@ export class TournamentService {
         'Cannot add a phase to a tournament with a SingleBracketElimination phase',
       );
     }
-    const phase = new TournamentPhase(phaseType.type as TournamentPhaseType);
+    const phase = new Phase();
+    phase.type = phaseType.type;
     tournament.addPhase(phase);
     return tournament;
   }
 
-  getLastPhaseFromTournament(tournament: Tournament): TournamentPhase {
+  getLastPhaseFromTournament(tournament: Tournament): Phase {
     return tournament.phases[tournament.phases.length - 1];
   }
 

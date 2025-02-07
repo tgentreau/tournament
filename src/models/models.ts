@@ -9,6 +9,12 @@ export enum MatchStatus {
   NotReady = 'NotReady',
 }
 
+export enum TournamentStatus {
+  NotStarted = 'Not Started',
+  Started = 'Started',
+  Completed = 'Completed',
+}
+
 export interface TournamentPhaseInterface {
   type: string;
 }
