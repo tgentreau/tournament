@@ -68,4 +68,14 @@ export class TournamentController {
   ) {
     return this.participantService.removeParticipant(id, participantId);
   }
+
+  @Patch(':tournamentId/matches/:matchId')
+  @HttpCode(204) // NO CONTENT
+  async updateMatchScore(
+    @Param('tournamentId') tournamentId: string,
+    @Param('matchId') matchId: string,
+    @Body() updateMatchScoreDto: UpdateMatchScoreDto,
+  ) {
+    return this.tournamentService.updateMatchScore(tournamentId, matchId, updateMatchScoreDto);
+  }
 }

@@ -8,6 +8,8 @@ import {
 import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { UpdateTournamentDto } from './dto/update-tournament.dto';
 import {
+  Match,
+  MatchStatus,
   PostgresErrorCode,
   TournamentPhaseInterface,
   TournamentPhaseType,
@@ -21,12 +23,15 @@ import { InvalidStatusException } from './exceptions/invalidStatusException';
 import { SingleEliminationBracketCreatorService } from './singleEliminationBracketCreator.service';
 import { Tournament } from '../entities/tournament.entity';
 import { Phase } from '../entities/phase.entity';
+import { UpdateMatchScoreDto } from './dto/updateMatchScoreDto';
 
 @Injectable()
 export class TournamentService {
   constructor(
     @Inject('TOURNAMENT_REPOSITORY')
     private readonly tournamentRepository: Repository<Tournament>,
+    @Inject('MATCH_REPOSITORY')
+    private readonly matchRepository: Repository<Match>,
     @Inject('PHASE_REPOSITORY')
     private readonly phaseRepository: Repository<Phase>,
     private readonly singleEliminationBracketCreatorService: SingleEliminationBracketCreatorService,
@@ -128,5 +133,41 @@ export class TournamentService {
 
   getLastPhaseFromTournament(tournament: Tournament): TournamentPhaseType {
     return tournament.phases[tournament.phases.length - 1].type;
+  }
+
+  async updateMatchScore(
+    tournamentId: string, 
+    matchId: string, 
+    updateMatchScoreDto: UpdateMatchScoreDto
+  ): Promise<void> {
+    const { score, winner } = updateMatchScoreDto;
+
+    // Vérifier si le tournoi existe
+    const tournament = await this.tournamentRepository.findOne({ where: { id: tournamentId } });
+    if (!tournament) {
+      throw new NotExistingException('tournoi');
+    }
+
+    // Vérifier si le match existe
+    const match = await this.matchRepository.findOne({ where: { id: matchId } });
+    if (!match) {
+      throw new NotExistingException('match');
+    }
+
+    // Vérifier si le score est déjà défini (interdit de le modifier)
+    if (match.score) {
+      throw new BadRequestException('Le score et le gagnant ont déjà été définis pour ce match');
+    }
+
+    // Vérifier si le gagnant est bien un des participants du match
+    if (![match.participant1?.name, match.participant2?.name].includes(winner)) {
+      throw new BadRequestException('Le gagnant ne fait pas partie de ce match');
+    }
+
+    // Mise à jour du match avec le score et le gagnant
+    match.score = score;
+    match.winner = winner;
+    match.status = MatchStatus.Finished;
+    await this.matchRepository.save(match);
   }
 }

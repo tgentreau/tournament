@@ -7,6 +7,7 @@ export enum MatchStatus {
   Playable = 'Playable',
   NotPlayable = 'NotPlayable',
   NotReady = 'NotReady',
+  Finished = 'Finished',
 }
 
 export enum TournamentStatus {
