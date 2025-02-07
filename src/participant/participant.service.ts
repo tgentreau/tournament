@@ -1,4 +1,9 @@
-import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { TournamentService } from 'src/tournament/tournament.service';
 import { Tournament } from '../entities/tournament.entity';
 import { Repository } from 'typeorm';

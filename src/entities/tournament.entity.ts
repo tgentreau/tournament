@@ -5,7 +5,6 @@ import { TournamentStatus } from '../models/models';
 
 @Entity()
 export class Tournament {
-
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -17,7 +16,7 @@ export class Tournament {
   @Column({ nullable: true })
   maxParticipants?: number;
 
-  @OneToMany(() => Phase, phase => phase.tournament)
+  @OneToMany(() => Phase, (phase) => phase.tournament)
   phases: Phase[];
 
   @OneToMany(() => Participant, (participant) => participant.tournament)
@@ -29,5 +28,4 @@ export class Tournament {
     default: TournamentStatus.NotStarted,
   })
   status: TournamentStatus;
-
 }

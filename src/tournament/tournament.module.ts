@@ -5,12 +5,19 @@ import { ParticipantModule } from 'src/participant/participant.module';
 import { tournamentProviders } from './providers/tournament.providers';
 import { ConfigModule } from 'src/config/config.module';
 import { SingleEliminationBracketCreatorService } from './singleEliminationBracketCreator.service';
+import { phaseProviders } from '../providers/phase.providers';
+import { participantProviders } from '../participant/providers/participant.providers';
 
 @Module({
   imports: [ConfigModule, ParticipantModule],
   controllers: [TournamentController],
-  providers: [...tournamentProviders, TournamentService, TournamentRepository, SingleEliminationBracketCreatorService],
+  providers: [
+    ...phaseProviders,
+    ...participantProviders,
+    ...tournamentProviders,
+    TournamentService,
+    SingleEliminationBracketCreatorService,
+  ],
   exports: [TournamentService],
 })
-export class TournamentModule {
-}
+export class TournamentModule {}
