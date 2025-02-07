@@ -1,7 +1,7 @@
-import { TournamentStatus } from '../../models/models';
 import { Participant } from './participant.entity';
 import { Phase } from './phase.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { TournamentStatus } from '../models/models';
 
 @Entity()
 export class Tournament {
@@ -10,7 +10,7 @@ export class Tournament {
   id: string;
 
   @Column({
-    unique: true
+    unique: true,
   })
   name: string;
 
@@ -20,11 +20,11 @@ export class Tournament {
   @OneToMany(() => Phase, phase => phase.tournament)
   phases: Phase[];
 
-  @OneToMany(() => Participant, participant => participant.tournament)
+  @OneToMany(() => Participant, (participant) => participant.tournament)
   participants: Participant[];
 
   @Column({
-    type: "enum",
+    type: 'enum',
     enum: TournamentStatus,
     default: TournamentStatus.NotStarted,
   })

@@ -1,4 +1,3 @@
-import { TournamentPhaseType } from '../../models/models';
 import {
   Column,
   Entity,
@@ -8,6 +7,7 @@ import {
 } from 'typeorm';
 import { Tournament } from './tournament.entity';
 import { Round } from './round.entity';
+import { TournamentPhaseType } from '../models/models';
 
 @Entity()
 export class Phase {

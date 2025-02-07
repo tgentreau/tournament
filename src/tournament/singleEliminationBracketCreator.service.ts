@@ -1,12 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { TournamentRepository } from './tournament.repository';
-import { Match, MatchStatus, Participant, Round } from '../models/models';
+import { MatchStatus } from '../models/models';
 import { MathUtils } from '../utils/mathUtils';
+import { Round } from '../entities/round.entity';
+import { Participant } from '../entities/participant.entity';
+import { Match } from '../entities/match.entity';
 
 export
 @Injectable()
 class SingleEliminationBracketCreatorService {
-  constructor(private readonly tournamentRepository: TournamentRepository) {}
+  constructor() {}
 
   public generateSingleEliminationBracket(players: Participant[]): Round[] {
     if (!players || players.length === 0) {
@@ -54,17 +56,18 @@ class SingleEliminationBracketCreatorService {
     let nbOfMatches = nbOfMatchesFirstRound;
 
     for (let i = 0; i < totalRounds; i++) {
-      const newRound: Round = {
-        name: `Round ${i + 1}`,
-        matches: Array(nbOfMatches)
-          .fill(null)
-          .map(() => ({
-            participant1: null,
-            participant2: null,
-            status: MatchStatus.NotReady,
-            winner: null,
-          })),
-      };
+      const newRound: Round = new Round();
+      newRound.name = `Round ${i + 1}`;
+      newRound.matches = Array(nbOfMatches)
+        .fill(null)
+        .map(() => {
+          const match = new Match();
+          match.participant1 = null;
+          match.participant2 = null;
+          match.status = MatchStatus.NotPlayable;
+          match.winner = null;
+          return match;
+        });
       nbOfMatches /= 2;
       rounds.push(newRound);
     }
@@ -91,24 +94,22 @@ class SingleEliminationBracketCreatorService {
         participant2 = players[i];
       }
 
-      const match: Match = {
-        participant1: participant1,
-        participant2: participant2,
-        status:
-          participant1 != null && participant2 != null
-            ? MatchStatus.Playable
-            : MatchStatus.NotPlayable,
-        winner: (() => {
-          let winner = null;
-          if (participant1 === null) {
-            winner = participant2.name;
-          } else if (participant2 === null) {
-            winner = participant1.name;
-          }
-          return winner;
-        })(),
-      };
-
+      const match: Match = new Match();
+      match.participant1 = participant1;
+      match.participant2 = participant2;
+      match.status =
+        participant1 != null && participant2 != null
+          ? MatchStatus.Playable
+          : MatchStatus.NotPlayable;
+      match.winner = (() => {
+        let winner = null;
+        if (participant1 === null) {
+          winner = participant2.name;
+        } else if (participant2 === null) {
+          winner = participant1.name;
+        }
+        return winner;
+      })();
       if (participant2 === null) {
         match.score = null;
       }
@@ -183,7 +184,6 @@ class SingleEliminationBracketCreatorService {
         }
       });
     });
-
     return rounds;
   }
 }

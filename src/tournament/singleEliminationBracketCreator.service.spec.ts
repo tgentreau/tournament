@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SingleEliminationBracketCreatorService } from './singleEliminationBracketCreator.service';
-import { TournamentRepository } from './tournament.repository';
 import { MatchStatus, Participant, Round } from '../models/models';
 
 describe('SingleEliminationBracketCreatorService - generateSingleEliminationBracket', () => {

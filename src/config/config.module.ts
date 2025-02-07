@@ -5,4 +5,5 @@ import { databaseProviders } from './datasource.providers';
   providers: [...databaseProviders],
   exports: [...databaseProviders],
 })
-export class ConfigModule {}
+export class ConfigModule {
+}

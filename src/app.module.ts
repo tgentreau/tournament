@@ -10,4 +10,5 @@ import { ParticipantModule } from './participant/participant.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule {
+}
