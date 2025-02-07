@@ -15,8 +15,14 @@ export enum TournamentStatus {
   Completed = 'Completed',
 }
 
+export enum PostgresErrorCode {
+  InvalidEnumValue = '22P02',
+  NullValueNotAllowed = '23502',
+  UniqueValueViolation = '23505',
+}
+
 export interface TournamentPhaseInterface {
-  type: string;
+  type: TournamentPhaseType;
 }
 
 export interface Round {
