@@ -9,8 +9,11 @@ import { SingleEliminationBracketCreatorService } from './singleEliminationBrack
 @Module({
   imports: [ConfigModule, ParticipantModule],
   controllers: [TournamentController],
-  providers: [...tournamentProviders, TournamentService, TournamentRepository, SingleEliminationBracketCreatorService],
+  providers: [
+    ...tournamentProviders,
+    TournamentService,
+    SingleEliminationBracketCreatorService,
+  ],
   exports: [TournamentService],
 })
-export class TournamentModule {
-}
+export class TournamentModule {}
