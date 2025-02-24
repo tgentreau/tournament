@@ -31,21 +31,17 @@ export class ParticipantService {
     participant.tournament = tournament;
     if (tournament.maxParticipants != null) {
       if (tournament.participants.length < tournament.maxParticipants) {
-        return this.participantRepository.create(participant);
+        return this.participantRepository.save(participant);
       } else {
         throw new BadRequestException('Maximum participants reached');
       }
     } else {
-      return this.participantRepository.create(participant);
+      return this.participantRepository.save(participant);
     }
   }
 
   async getParticipants(tournamentId: string): Promise<Participant[]> {
-    return this.participantRepository.find({
-      where: {
-        tournamentId: tournamentId,
-      },
-    });
+    return this.participantRepository.findBy({ tournamentId: tournamentId });
   }
 
   async removeParticipant(tournamentId: string, participantId: string) {
@@ -57,6 +53,6 @@ export class ParticipantService {
         'Cannot remove participant from a started tournament',
       );
     }
-    return this.participantRepository.delete(participantId);
+    await this.participantRepository.delete(participantId);
   }
 }

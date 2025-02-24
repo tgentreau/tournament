@@ -23,6 +23,6 @@ export class Phase {
   @ManyToOne(() => Tournament, (tournament) => tournament.phases)
   tournament: Tournament;
 
-  @OneToMany(() => Round, (round) => round.phase)
+  @OneToMany(() => Round, (round) => round.phase, { cascade: true })
   rounds: Round[];
 }

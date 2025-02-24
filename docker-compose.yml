@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+
+  database:
+    image: postgres:latest
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: TOURNAMENT
+      POSTGRES_PASSWORD: la_securite
+      POSTGRES_DB: tournament
+    volumes:
+      - /var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: .dockerfile
+    restart: always
+    environment:
+      - BACKEND_HOST=${BACKEND_HOST}
+      - BACKEND_PORT=${BACKEND_PORT}
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - JWT-SECRET=${JWT_SECRET}
+    ports:
+      - ${BACKEND_PORT}:${BACKEND_PORT}
+    expose:
+      - ${BACKEND_PORT}
+    volumes:
+      - ./:/home/node/app/:rw
+      - /home/node/app/node_modules/
+    command: npm run start:dev
+    depends_on:
+      - database

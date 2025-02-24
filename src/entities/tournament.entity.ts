@@ -16,10 +16,12 @@ export class Tournament {
   @Column({ nullable: true })
   maxParticipants?: number;
 
-  @OneToMany(() => Phase, (phase) => phase.tournament)
+  @OneToMany(() => Phase, (phase) => phase.tournament, { cascade: true })
   phases: Phase[];
 
-  @OneToMany(() => Participant, (participant) => participant.tournament)
+  @OneToMany(() => Participant, (participant) => participant.tournament, {
+    cascade: true,
+  })
   participants: Participant[];
 
   @Column({

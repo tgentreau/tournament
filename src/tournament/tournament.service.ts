@@ -32,12 +32,13 @@ export class TournamentService {
     private readonly singleEliminationBracketCreatorService: SingleEliminationBracketCreatorService,
   ) {}
 
-  create(createTournamentDto: CreateTournamentDto): string {
+  async create(createTournamentDto: CreateTournamentDto): Promise<string> {
     try {
       const tournament: Tournament = new Tournament();
       tournament.name = createTournamentDto.name;
       tournament.maxParticipants = createTournamentDto.maxParticipants;
-      return this.tournamentRepository.create(tournament).id;
+
+      return (await this.tournamentRepository.save(tournament)).id;
     } catch (error) {
       if (error instanceof QueryFailedError) {
         if (
@@ -53,10 +54,14 @@ export class TournamentService {
   }
 
   async findOne(id: string): Promise<Tournament> {
-    const tournament: Tournament = await this.tournamentRepository.find({
+    const tournament: Tournament = await this.tournamentRepository.findOne({
       where: { id: id },
-      take: 1,
-    })[0];
+      relations: [
+        'phases.rounds.matches.participant1',
+        'phases.rounds.matches.participant2',
+        'participants',
+      ],
+    });
     if (tournament === undefined) {
       throw new NotExistingException('tournoi');
     }
@@ -76,9 +81,10 @@ export class TournamentService {
       this.singleEliminationBracketCreatorService.generateSingleEliminationBracket(
         tournament.participants,
       );
+    console.log(tournament.phases[0].rounds);
     try {
       tournament.status = updateTournamentDto.status;
-      this.tournamentRepository.create(tournament);
+      await this.tournamentRepository.save(tournament);
       return new HttpException('', HttpStatus.NO_CONTENT);
     } catch (error) {
       if (error instanceof QueryFailedError) {
@@ -86,13 +92,14 @@ export class TournamentService {
           throw new InvalidStatusException();
         }
       }
+      throw error;
     }
   }
 
   async addPhaseToTournament(
     tournamentId: string,
     phaseType: TournamentPhaseInterface,
-  ): Promise<Tournament> {
+  ): Promise<Phase> {
     const tournament: Tournament = await this.findOne(tournamentId);
     if (!tournament) {
       throw new NotExistingException('tournoi');
@@ -115,8 +122,7 @@ export class TournamentService {
       const phase: Phase = new Phase();
       phase.type = phaseType.type;
       phase.tournament = tournament;
-      this.phaseRepository.create(phase);
-      return tournament;
+      return await this.phaseRepository.save(phase);
     } catch (error) {
       if (error instanceof QueryFailedError) {
         if (error.driverError?.code === PostgresErrorCode.InvalidEnumValue) {

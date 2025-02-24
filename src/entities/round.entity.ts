@@ -16,7 +16,7 @@ export class Round {
   @Column()
   name: string;
 
-  @OneToMany(() => Match, (match) => match.round)
+  @OneToMany(() => Match, (match) => match.round, { cascade: true })
   matches: Match[];
 
   @ManyToOne(() => Phase, (phase) => phase.rounds)

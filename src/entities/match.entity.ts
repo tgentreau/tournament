@@ -8,19 +8,19 @@ export class Match {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @ManyToOne(() => Participant)
   participant1: Participant;
 
-  @Column()
+  @ManyToOne(() => Participant)
   participant2: Participant;
 
   @ManyToOne(() => Round, (round) => round.matches)
   round: Round;
 
-  @Column()
+  @Column({ nullable: true })
   score: string;
 
-  @Column()
+  @Column({ nullable: true })
   winner: string;
 
   @Column({

@@ -1,0 +1,10 @@
+.gitignore
+.prettierrc
+
+README.md
+.git
+
+node_modules/
+test/
+.npm
+dist/
